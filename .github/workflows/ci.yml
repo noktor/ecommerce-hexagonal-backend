@@ -7,57 +7,107 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  validate-commits:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: '20'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
       
       - name: Install dependencies
         run: pnpm install
       
-      - name: Type check
+      - name: Validate commit messages
+        run: |
+          npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      
+      - name: Install backend dependencies
+        run: pnpm install
+      
+      - name: Type check backend
         run: pnpm run check
       
-      - name: Build
+      - name: Build backend
         run: pnpm run build
+      
+      - name: Install frontend dependencies
+        run: pnpm run frontend:install
+      
+      - name: Build frontend
+        run: pnpm run frontend:build
+      
+      - name: Audit dependencies (backend)
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Audit dependencies (frontend)
+        run: cd frontend && pnpm audit --audit-level=high
+        continue-on-error: true
 
   deploy-qa:
-    needs: test
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
     environment: qa
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
       
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: pnpm install
       
-      - name: Build
+      - name: Build backend
         run: pnpm run build
+      
+      - name: Install frontend dependencies
+        run: pnpm run frontend:install
+      
+      - name: Build frontend
+        run: pnpm run frontend:build
       
       - name: Create .env file for QA
         run: |
@@ -68,6 +118,10 @@ jobs:
           PORT=3000
           NODE_ENV=qa
           FRONTEND_URL=${{ secrets.QA_FRONTEND_URL }}
+          JWT_SECRET=${{ secrets.QA_JWT_SECRET }}
+          JWT_EXPIRES_IN=7d
+          SENDGRID_API_KEY=${{ secrets.QA_SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL=${{ secrets.QA_SENDGRID_FROM_EMAIL }}
           EOF
         shell: bash
       
@@ -89,30 +143,36 @@ jobs:
           # Example: docker-compose -f docker-compose.prod.yml up -d
 
   deploy-production:
-    needs: test
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     environment: production
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
       
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: pnpm install
       
-      - name: Build
+      - name: Build backend
         run: pnpm run build
+      
+      - name: Install frontend dependencies
+        run: pnpm run frontend:install
+      
+      - name: Build frontend
+        run: pnpm run frontend:build
       
       - name: Create .env file for Production
         run: |
@@ -123,6 +183,10 @@ jobs:
           PORT=3000
           NODE_ENV=production
           FRONTEND_URL=${{ secrets.PROD_FRONTEND_URL }}
+          JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
+          JWT_EXPIRES_IN=7d
+          SENDGRID_API_KEY=${{ secrets.PROD_SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL=${{ secrets.PROD_SENDGRID_FROM_EMAIL }}
           EOF
         shell: bash
       
