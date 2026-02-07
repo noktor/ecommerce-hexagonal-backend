@@ -6,13 +6,20 @@ export class RedisLockService implements LockService {
   private fallbackLocks: Map<string, { expiry: number }> = new Map();
   private connectionFailed: boolean = false;
 
-  constructor(private readonly redisUrl: string = 'redis://localhost:6379') {}
+  constructor(private readonly redisUrl: string | undefined) {}
 
   async connect(): Promise<void> {
-    // Skip Redis connection if URL is not provided or is localhost in production
-    if (!this.redisUrl || this.redisUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+    // Skip Redis connection if URL is not provided
+    if (!this.redisUrl) {
       this.connectionFailed = true;
-      console.warn('⚠️  Redis URL not configured or using localhost in production, using in-memory fallback');
+      console.warn('⚠️  REDIS_URL is not configured, using in-memory fallback for lock service.');
+      return;
+    }
+
+    // Skip Redis connection if using localhost in production (not allowed)
+    if (this.redisUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+      this.connectionFailed = true;
+      console.warn('⚠️  Redis URL uses localhost in production, using in-memory fallback');
       return;
     }
 
@@ -87,7 +94,7 @@ export class RedisLockService implements LockService {
     const lockKey = `lock:${key}`;
     
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         // SET key value NX EX ttl - atomic operation
         const result = await this.redis.set(lockKey, '1', 'EX', ttlSeconds, 'NX');
         return result === 'OK';
@@ -116,7 +123,7 @@ export class RedisLockService implements LockService {
     const lockKey = `lock:${key}`;
     
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         await this.redis.del(lockKey);
       } else {
         this.fallbackLocks.delete(lockKey);
@@ -133,7 +140,7 @@ export class RedisLockService implements LockService {
     const lockKey = `lock:${key}`;
     
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         const result = await this.redis.expire(lockKey, ttlSeconds);
         return result === 1;
       } else {
@@ -160,7 +167,7 @@ export class RedisLockService implements LockService {
   }
 
   async close(): Promise<void> {
-    if (this.redis) {
+    if (this.redis && !this.connectionFailed) {
       await this.redis.quit();
     }
   }

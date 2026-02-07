@@ -6,13 +6,20 @@ export class RedisCacheService implements CacheService {
   private fallbackCache: Map<string, { value: unknown; expiry: number }> = new Map();
   private connectionFailed: boolean = false;
 
-  constructor(private readonly redisUrl: string = 'redis://localhost:6379') {}
+  constructor(private readonly redisUrl: string | undefined) {}
 
   async connect(): Promise<void> {
-    // Skip Redis connection if URL is not provided or is localhost in production
-    if (!this.redisUrl || this.redisUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+    // Skip Redis connection if URL is not provided
+    if (!this.redisUrl) {
       this.connectionFailed = true;
-      console.warn('⚠️  Redis URL not configured or using localhost in production, using in-memory fallback');
+      console.warn('⚠️  REDIS_URL is not configured, using in-memory fallback for cache.');
+      return;
+    }
+
+    // Skip Redis connection if using localhost in production (not allowed)
+    if (this.redisUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+      this.connectionFailed = true;
+      console.warn('⚠️  Redis URL uses localhost in production, using in-memory fallback');
       return;
     }
 
@@ -87,7 +94,7 @@ export class RedisCacheService implements CacheService {
 
   async get<T>(key: string): Promise<T | null> {
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         const value = await this.redis.get(key);
         if (value) {
           return JSON.parse(value) as T;
@@ -114,7 +121,7 @@ export class RedisCacheService implements CacheService {
     try {
       const serialized = JSON.stringify(value);
 
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         if (ttlSeconds) {
           await this.redis.setex(key, ttlSeconds, serialized);
         } else {
@@ -136,7 +143,7 @@ export class RedisCacheService implements CacheService {
 
   async delete(key: string): Promise<void> {
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         await this.redis.del(key);
       } else {
         this.fallbackCache.delete(key);
@@ -148,7 +155,7 @@ export class RedisCacheService implements CacheService {
 
   async clear(): Promise<void> {
     try {
-      if (this.redis) {
+      if (this.redis && !this.connectionFailed) {
         await this.redis.flushdb();
       } else {
         this.fallbackCache.clear();
@@ -168,7 +175,7 @@ export class RedisCacheService implements CacheService {
   }
 
   async close(): Promise<void> {
-    if (this.redis) {
+    if (this.redis && !this.connectionFailed) {
       await this.redis.quit();
     }
   }
