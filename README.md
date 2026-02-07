@@ -1,6 +1,8 @@
 # 🛒 E-commerce Backend - Hexagonal Architecture
 
-E-commerce backend implemented with **Hexagonal Architecture** (Ports & Adapters), including retry system with RabbitMQ and cache with Redis.
+E-commerce backend API implemented with **Hexagonal Architecture** (Ports & Adapters), including retry system with RabbitMQ and cache with Redis.
+
+> **Note**: The frontend application is now in a [separate repository](https://github.com/your-org/ecommerce-frontend). This repository contains only the backend API.
 
 ## 📋 Features
 
@@ -189,7 +191,7 @@ If you prefer to run only Redis with Docker and the application locally:
    # Server Configuration
    PORT=3000
    NODE_ENV=development
-   FRONTEND_URL=http://localhost:5173
+   FRONTEND_URL=http://localhost:5173  # Frontend URL for CORS (update with the actual deployed frontend URL)
    ```
 
 **⚠️ SECURITY BEST PRACTICES**: 

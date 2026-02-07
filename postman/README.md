@@ -1,93 +1,108 @@
-# 📮 Col·lecció Postman per E-commerce API
+# 📮 Postman Collection for E-commerce API
 
-## 📥 Importar a Postman
+## 📥 Import to Postman
 
-### Opció 1: Importar Col·lecció i Entorn
+### Option 1: Import Collection and Environment
 
-1. Obre Postman
-2. Fes clic a **Import** (botó superior esquerra)
-3. Arrossega o selecciona:
-   - `E-commerce-API.postman_collection.json` (Col·lecció)
-   - `E-commerce-API.postman_environment.json` (Entorn - opcional però recomanat)
+1. Open Postman
+2. Click **Import** (top left button)
+3. Drag or select:
+   - `E-commerce-API.postman_collection.json` (Collection)
+   - `E-commerce-API.postman_environment.json` (Environment - optional but recommended)
 
-### Opció 2: Importar només la Col·lecció
+### Option 2: Import Only the Collection
 
-Si només vols la col·lecció sense l'entorn, importa només el fitxer `E-commerce-API.postman_collection.json`.
+If you only want the collection without the environment, import only the `E-commerce-API.postman_collection.json` file.
 
-## 🎯 Endpoints Inclosos
+## 🎯 Included Endpoints
 
 ### Health Check
-- `GET /health` - Verifica que l'API està funcionant
+- `GET /health` - Verify that the API is running
 
 ### Products
-- `GET /api/products` - Obté tots els productes
-- `GET /api/products?category=Electronics` - Filtra per categoria
-- `GET /api/products/:id` - Obté un producte per ID
+- `GET /api/products` - Get all products
+- `GET /api/products?category=Electronics` - Filter by category
+- `GET /api/products/:id` - Get a product by ID
 
 ### Cart
-- `GET /api/cart/:customerId` - Obté el carret d'un client
-- `POST /api/cart` - Afegeix producte al carret
-- `DELETE /api/cart/item` - Elimina un producte del carret
+- `GET /api/cart` - Get user's cart (requires authentication)
+- `POST /api/cart` - Add product to cart (requires authentication)
+- `DELETE /api/cart/:productId` - Remove a product from cart (requires authentication)
 
 ### Orders
-- `POST /api/orders` - Crea una nova comanda
-- `GET /api/orders/:id` - Obté una comanda per ID
+- `POST /api/orders` - Create a new order (requires authentication)
+- `GET /api/orders` - Get user's orders (requires authentication)
+- `GET /api/orders/:id` - Get an order by ID (requires authentication)
 
-## ⚙️ Variables d'Entorn
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/verify/:token` - Verify email
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password
+- `GET /api/auth/me` - Get current user (requires authentication)
 
-La col·lecció utilitza variables per facilitar l'ús:
+## ⚙️ Environment Variables
 
-- `{{base_url}}` - URL base de l'API (per defecte: `http://localhost:3000`)
-- `{{customer_id}}` - ID del client (per defecte: `1`)
-- `{{product_id}}` - ID del producte (per defecte: `1`)
+The collection uses variables to facilitate usage:
 
-### Canviar l'Entorn
+- `{{base_url}}` - API base URL (default: `http://localhost:3000`)
+- `{{auth_token}}` - JWT authentication token (set after login)
 
-1. Selecciona l'entorn "E-commerce API - Local" al selector d'entorns (superior dreta)
-2. Pots modificar les variables clicant a l'icona de l'ull 👁️
-3. O crea un nou entorn per producció/staging
+### Changing the Environment
 
-## 🚀 Començar a Provar
+1. Select the "E-commerce API - Local" environment from the environment selector (top right)
+2. You can modify variables by clicking the eye icon 👁️
+3. Or create a new environment for production/staging
 
-1. **Assegura't que el backend està funcionant:**
+## 🚀 Getting Started
+
+1. **Make sure the backend is running:**
    ```bash
    docker-compose ps
-   # O verifica: http://localhost:3000/health
+   # Or verify: http://localhost:3000/health
    ```
 
-2. **Prova el Health Check primer:**
-   - Obre "Health Check" a la col·lecció
-   - Fes clic a "Send"
-   - Hauries de rebre: `{"status":"ok","timestamp":"..."}`
+2. **Test the Health Check first:**
+   - Open "Health Check" in the collection
+   - Click "Send"
+   - You should receive: `{"status":"ok","timestamp":"..."}`
 
-3. **Prova obtenir productes:**
-   - Obre "Products > Get All Products"
-   - Fes clic a "Send"
-   - Hauries de veure una llista de productes
+3. **Test getting products:**
+   - Open "Products > Get All Products"
+   - Click "Send"
+   - You should see a list of products
 
-## 📝 Exemples de Request Bodies
+## 📝 Request Body Examples
 
-### Afegir al Carret
+### Register User
 ```json
 {
-  "customerId": "1",
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe"
+}
+```
+
+### Login
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+### Add to Cart (requires authentication)
+```json
+{
   "productId": "1",
   "quantity": 2
 }
 ```
 
-### Eliminar del Carret
+### Create Order (requires authentication)
 ```json
 {
-  "customerId": "1",
-  "productId": "1"
-}
-```
-
-### Crear Comanda
-```json
-{
-  "customerId": "1",
   "items": [
     {
       "productId": "1",
@@ -102,16 +117,16 @@ La col·lecció utilitza variables per facilitar l'ús:
 }
 ```
 
-## 🔧 Personalitzar
+## 🔧 Customize
 
-Pots modificar les variables d'entorn per:
-- Canviar la URL base (ex: producció)
-- Canviar IDs de client/producte per defecte
-- Afegir autenticació si s'implementa més endavant
+You can modify environment variables to:
+- Change the base URL (e.g., production)
+- Set authentication tokens after login
+- Add more variables as needed
 
-## 📚 Més Informació
+## 📚 More Information
 
 - **API Base URL**: http://localhost:3000
-- **API Docs**: Pots veure els endpoints a `src/api/routes/`
+- **API Docs**: You can see the endpoints in `src/api/routes/`
 - **Backend Logs**: `docker-compose logs -f app`
 

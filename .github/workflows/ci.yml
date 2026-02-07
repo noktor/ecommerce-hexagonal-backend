@@ -16,15 +16,15 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 10
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       
       - name: Install dependencies
         run: pnpm install
@@ -43,38 +43,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: pnpm install
       
-      - name: Type check backend
+      - name: Type check
         run: pnpm run check
       
-      - name: Build backend
+      - name: Build
         run: pnpm run build
       
-      - name: Install frontend dependencies
-        run: pnpm run frontend:install
-      
-      - name: Build frontend
-        run: pnpm run frontend:build
-      
-      - name: Audit dependencies (backend)
+      - name: Audit dependencies
         run: pnpm audit --audit-level=high
-        continue-on-error: true
-      
-      - name: Audit dependencies (frontend)
-        run: cd frontend && pnpm audit --audit-level=high
         continue-on-error: true
 
   deploy-qa:
@@ -86,28 +76,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
       
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: pnpm install
       
-      - name: Build backend
+      - name: Build
         run: pnpm run build
-      
-      - name: Install frontend dependencies
-        run: pnpm run frontend:install
-      
-      - name: Build frontend
-        run: pnpm run frontend:build
       
       - name: Create .env file for QA
         run: |
@@ -151,28 +135,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
       
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: pnpm install
       
-      - name: Build backend
+      - name: Build
         run: pnpm run build
-      
-      - name: Install frontend dependencies
-        run: pnpm run frontend:install
-      
-      - name: Build frontend
-        run: pnpm run frontend:build
       
       - name: Create .env file for Production
         run: |

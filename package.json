@@ -1,5 +1,5 @@
 {
-  "name": "ecommerce-hexagonal-backend",
+  "name": "ecommerce-backend",
   "version": "1.0.0",
   "description": "E-commerce backend with hexagonal architecture, RabbitMQ retry system and Redis cache",
   "main": "dist/index.js",
@@ -16,9 +16,6 @@
     "docker:check": "powershell -ExecutionPolicy Bypass -File .\\check-docker.ps1",
     "db:seed": "ts-node src/infrastructure/database/seed.ts",
     "env:setup": "if (!(Test-Path .env)) { Copy-Item .env.example .env; Write-Host 'Created .env from .env.example - Please update with your credentials' } else { Write-Host '.env already exists' }",
-    "frontend:install": "cd frontend && pnpm install",
-    "frontend:dev": "cd frontend && pnpm run dev",
-    "frontend:build": "cd frontend && pnpm run build",
     "prepare": "husky"
   },
   "config": {

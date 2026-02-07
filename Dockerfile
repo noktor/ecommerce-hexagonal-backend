@@ -1,37 +1,37 @@
-# Dockerfile per a l'aplicació Node.js
+# Dockerfile for Node.js application
 FROM node:18-alpine
 
-# Instal·lar eines de compilació necessàries per bcrypt i altres mòduls natius
+# Install build tools necessary for bcrypt and other native modules
 RUN apk add --no-cache python3 make g++
 
-# Establir directori de treball
+# Set working directory
 WORKDIR /app
 
-# Copiar arxius de configuració
+# Copy configuration files
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY .npmrc* ./
 
-# Instal·lar pnpm
+# Install pnpm
 RUN npm install -g pnpm
 
-# Instal·lar totes les dependències amb pnpm
+# Install all dependencies with pnpm
 RUN pnpm install
 
-# Construir bcrypt manualment després de la instal·lació
-# Primer aprovar els builds i després reconstruir bcrypt
+# Build bcrypt manually after installation
+# First approve builds and then rebuild bcrypt
 RUN cd node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt && \
     npm run install || \
     (cd /app && npm rebuild bcrypt --build-from-source) || \
     (cd /app && pnpm rebuild bcrypt)
 
-# Copiar codi font
+# Copy source code
 COPY src/ ./src/
 
-# Exposar port de l'API
+# Expose API port
 EXPOSE 3000
 
-# Per desenvolupament: usar ts-node directament
-# Per producció: compilar primer amb `pnpm run build` i després `pnpm start`
+# For development: use ts-node directly
+# For production: compile first with `pnpm run build` and then `pnpm start`
 CMD ["pnpm", "run", "dev"]
 
