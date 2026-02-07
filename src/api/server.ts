@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { corsMiddleware } from './middleware/cors';
 import { errorHandler } from './middleware/errorHandler';
 import { createApiRouter } from './routes';
@@ -7,6 +8,7 @@ import { CartController } from './controllers/CartController';
 import { OrdersController } from './controllers/OrdersController';
 import { AuthController } from './controllers/AuthController';
 import { TokenService } from '../domain/services/TokenService';
+import { swaggerSpec } from './config/swagger';
 
 export interface UseCases {
   getProductsUseCase: any;
@@ -44,6 +46,19 @@ export function createApp(
   app.use(corsMiddleware);
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Swagger UI - API Documentation
+  try {
+    app.use('/api-docs', swaggerUi.serve);
+    app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'E-commerce API Documentation',
+      customfavIcon: '/favicon.ico'
+    }));
+    console.log('✅ Swagger UI configured at /api-docs');
+  } catch (error) {
+    console.error('❌ Error configuring Swagger UI:', error);
+  }
 
   // Health check
   app.get('/health', (req, res) => {
@@ -96,6 +111,7 @@ export function startServer(app: Express, port: number = 3000): void {
   app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
     console.log(`📡 API available at http://localhost:${port}/api`);
+    console.log(`📚 API Documentation available at http://localhost:${port}/api-docs`);
   });
 }
 
