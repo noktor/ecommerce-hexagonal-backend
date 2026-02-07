@@ -9,6 +9,13 @@ export class RedisLockService implements LockService {
   constructor(private readonly redisUrl: string = 'redis://localhost:6379') {}
 
   async connect(): Promise<void> {
+    // Skip Redis connection if URL is not provided or is localhost in production
+    if (!this.redisUrl || this.redisUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+      this.connectionFailed = true;
+      console.warn('⚠️  Redis URL not configured or using localhost in production, using in-memory fallback');
+      return;
+    }
+
     try {
       this.redis = new Redis(this.redisUrl, {
         retryStrategy: (times) => {
@@ -22,11 +29,26 @@ export class RedisLockService implements LockService {
         maxRetriesPerRequest: 1,
         enableReadyCheck: false,
         lazyConnect: true,
-        enableOfflineQueue: false
+        enableOfflineQueue: false,
+        // Prevent connection attempts if Redis is not available
+        connectTimeout: 2000,
+        // Disable IPv6 to avoid ::1 connection attempts
+        family: 4
       });
 
+      // Register error handler IMMEDIATELY to catch all errors
       this.redis.on('error', () => {
-        // Errors handled in catch block
+        // Silently handle errors to prevent "Unhandled error event"
+        if (!this.connectionFailed) {
+          this.connectionFailed = true;
+        }
+      });
+      
+      // Handle connection errors specifically
+      this.redis.on('close', () => {
+        if (!this.connectionFailed) {
+          this.connectionFailed = true;
+        }
       });
 
       this.redis.on('connect', () => {

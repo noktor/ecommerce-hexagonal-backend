@@ -1,31 +1,31 @@
-# Script per iniciar tot el projecte (Redis + Aplicació)
-# Executa amb: .\start-all.ps1
+# Script to start the entire project (Redis + Application)
+# Run with: .\start-all.ps1
 
-Write-Host "🚀 Iniciant projecte amb Docker i Redis..." -ForegroundColor Cyan
+Write-Host "🚀 Starting project with Docker and Redis..." -ForegroundColor Cyan
 Write-Host ""
 
-# Verificar si Docker està en execució
-Write-Host "🔍 Verificant Docker..." -ForegroundColor Yellow
+# Check if Docker is running
+Write-Host "🔍 Checking Docker..." -ForegroundColor Yellow
 try {
     docker ps | Out-Null
-    Write-Host "✅ Docker està en execució" -ForegroundColor Green
+    Write-Host "✅ Docker is running" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Error: Docker Desktop no està en execució!" -ForegroundColor Red
+    Write-Host "❌ Error: Docker Desktop is not running!" -ForegroundColor Red
     Write-Host ""
-    Write-Host "   Si us plau:" -ForegroundColor Yellow
-    Write-Host "   1. Obre Docker Desktop" -ForegroundColor Yellow
-    Write-Host "   2. Espera que aparegui l'icona a la barra de tasques" -ForegroundColor Yellow
-    Write-Host "   3. Torna a executar aquest script" -ForegroundColor Yellow
+    Write-Host "   Please:" -ForegroundColor Yellow
+    Write-Host "   1. Open Docker Desktop" -ForegroundColor Yellow
+    Write-Host "   2. Wait for the icon to appear in the taskbar" -ForegroundColor Yellow
+    Write-Host "   3. Run this script again" -ForegroundColor Yellow
     exit 1
 }
 
-# Iniciar Redis amb docker-compose
+# Start Redis with docker-compose
 Write-Host ""
-Write-Host "🐳 Iniciant Redis amb Docker Compose..." -ForegroundColor Cyan
+Write-Host "🐳 Starting Redis with Docker Compose..." -ForegroundColor Cyan
 docker-compose up -d redis
 
-# Esperar que Redis estigui llest
-Write-Host "⏳ Esperant que Redis estigui llest..." -ForegroundColor Yellow
+# Wait for Redis to be ready
+Write-Host "⏳ Waiting for Redis to be ready..." -ForegroundColor Yellow
 $maxAttempts = 30
 $attempt = 0
 $redisReady = $false
@@ -37,51 +37,51 @@ while ($attempt -lt $maxAttempts -and -not $redisReady) {
         $result = docker exec redis redis-cli ping 2>&1
         if ($result -match "PONG") {
             $redisReady = $true
-            Write-Host "✅ Redis està funcionant!" -ForegroundColor Green
+            Write-Host "✅ Redis is working!" -ForegroundColor Green
         }
     } catch {
-        # Continuar intentant
+        # Continue trying
     }
     if ($attempt % 5 -eq 0) {
-        Write-Host "   Intentant connexió... ($attempt/$maxAttempts)" -ForegroundColor Gray
+        Write-Host "   Attempting connection... ($attempt/$maxAttempts)" -ForegroundColor Gray
     }
 }
 
 if (-not $redisReady) {
-    Write-Host "⚠️  Redis no respon encara, però continuem..." -ForegroundColor Yellow
+    Write-Host "⚠️  Redis is not responding yet, but continuing..." -ForegroundColor Yellow
 }
 
-# Verificar que npm està instal·lat
+# Check that npm is installed
 Write-Host ""
-Write-Host "📦 Verificant Node.js i npm..." -ForegroundColor Cyan
+Write-Host "📦 Checking Node.js and npm..." -ForegroundColor Cyan
 try {
     $nodeVersion = node --version
     $npmVersion = npm --version
     Write-Host "✅ Node.js: $nodeVersion" -ForegroundColor Green
     Write-Host "✅ npm: $npmVersion" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Error: Node.js o npm no estan instal·lats!" -ForegroundColor Red
+    Write-Host "❌ Error: Node.js or npm are not installed!" -ForegroundColor Red
     exit 1
 }
 
-# Instal·lar dependències si cal
+# Install dependencies if needed
 if (-not (Test-Path "node_modules")) {
     Write-Host ""
-    Write-Host "📥 Instal·lant dependències..." -ForegroundColor Cyan
+    Write-Host "📥 Installing dependencies..." -ForegroundColor Cyan
     npm install
 }
 
-# Mostrar estat
+# Show status
 Write-Host ""
-Write-Host "📊 Estat dels serveis:" -ForegroundColor Cyan
+Write-Host "📊 Service status:" -ForegroundColor Cyan
 docker ps --filter "name=redis" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 Write-Host ""
-Write-Host "🎯 Tot està llest! Iniciant l'aplicació..." -ForegroundColor Green
+Write-Host "🎯 Everything is ready! Starting the application..." -ForegroundColor Green
 Write-Host ""
 Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host ""
 
-# Executar l'aplicació
+# Run the application
 npm run dev
 

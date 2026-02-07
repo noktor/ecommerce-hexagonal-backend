@@ -1,4 +1,4 @@
-# Docker Compose per producció
+# Docker Compose for production
 version: '3.8'
 
 services:
@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
     networks:
       - app-network
-    # Per producció: compilar i executar
+    # For production: compile and run
     command: sh -c "npm run build && npm start"
 
 networks:

@@ -1,75 +1,58 @@
-# 🚀 Executar el Projecte Localment
+# 🚀 Run Backend Locally
 
-## Opció 1: Backend amb Docker, Frontend Local (Recomanat per desenvolupament)
+> **Note**: The frontend is in a [separate repository](https://github.com/your-org/ecommerce-frontend). This document only explains how to run the backend.
 
-### 1. Iniciar Backend i Redis amb Docker
+## Option 1: Backend with Docker (Recommended)
+
+### 1. Start Backend and Redis with Docker
 
 ```bash
 docker-compose up -d
 ```
 
-Això iniciarà:
+This will start:
 - ✅ Redis (port 6379)
+- ✅ RabbitMQ (ports 5672, 15672)
 - ✅ Backend API (port 3000)
 
-### 2. Executar Frontend Localment
+## Option 2: All Local (without Docker)
 
-Obre un terminal nou i executa:
+### 1. Start Redis
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-El frontend estarà disponible a: `http://localhost:5173`
-
-## Opció 2: Tot Local (sense Docker)
-
-### 1. Iniciar Redis
-
-Si tens Redis instal·lat localment:
+If you have Redis installed locally:
 ```bash
 redis-server
 ```
 
-O amb Docker només Redis:
+Or with Docker only for Redis:
 ```bash
 docker run -d -p 6379:6379 --name redis redis:latest
 ```
 
-### 2. Executar Backend
+### 2. Run Backend
 
 ```bash
-npm install
-npm run dev
-```
-
-### 3. Executar Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## URLs
 
-- **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:3000
 - **API Health Check**: http://localhost:3000/health
 - **API Products**: http://localhost:3000/api/products
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
 
-## Comandes Útils
+## Useful Commands
 
 ```bash
-# Veure logs del backend (Docker)
+# View backend logs (Docker)
 docker-compose logs -f app
 
-# Aturar tot (Docker)
+# Stop everything (Docker)
 docker-compose down
 
-# Reiniciar backend (Docker)
+# Restart backend (Docker)
 docker-compose restart app
 ```
 

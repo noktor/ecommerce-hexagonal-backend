@@ -1,5 +1,5 @@
-# Script que espera Docker i després inicia tot
-Write-Host "Esperant que Docker estigui llest..." -ForegroundColor Yellow
+# Script that waits for Docker and then starts everything
+Write-Host "Waiting for Docker to be ready..." -ForegroundColor Yellow
 
 $maxWait = 60
 $waited = 0
@@ -12,55 +12,55 @@ while ($waited -lt $maxWait -and -not $dockerReady) {
         $result = docker ps 2>&1
         if ($LASTEXITCODE -eq 0) {
             $dockerReady = $true
-            Write-Host "OK Docker està llest!" -ForegroundColor Green
+            Write-Host "OK Docker is ready!" -ForegroundColor Green
             break
         }
     } catch {
-        # Continuar
+        # Continue
     }
     if ($waited % 6 -eq 0) {
-        Write-Host "Encara esperant... ($waited segons)" -ForegroundColor Gray
+        Write-Host "Still waiting... ($waited seconds)" -ForegroundColor Gray
     }
 }
 
 if (-not $dockerReady) {
-    Write-Host "ERROR: Docker no està disponible després de $maxWait segons" -ForegroundColor Red
-    Write-Host "Tanca i torna a obrir Docker Desktop" -ForegroundColor Yellow
+    Write-Host "ERROR: Docker is not available after $maxWait seconds" -ForegroundColor Red
+    Write-Host "Close and reopen Docker Desktop" -ForegroundColor Yellow
     exit 1
 }
 
 Write-Host ""
-Write-Host "Iniciant Redis i aplicació..." -ForegroundColor Cyan
+Write-Host "Starting Redis and application..." -ForegroundColor Cyan
 Write-Host ""
 
-# Provar amb docker-compose primer
+# Try with docker-compose first
 try {
     docker-compose up --build -d
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
-        Write-Host "OK Tot iniciat!" -ForegroundColor Green
+        Write-Host "OK Everything started!" -ForegroundColor Green
         Write-Host ""
-        Write-Host "Veure logs:" -ForegroundColor Yellow
+        Write-Host "View logs:" -ForegroundColor Yellow
         Write-Host "docker-compose logs -f app" -ForegroundColor Gray
         exit 0
     }
 } catch {
-    # Continuar
+    # Continue
 }
 
-# Si falla, provar amb docker compose (versió nova)
-Write-Host "Provant amb docker compose..." -ForegroundColor Yellow
+# If it fails, try with docker compose (new version)
+Write-Host "Trying with docker compose..." -ForegroundColor Yellow
 docker compose up --build -d
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
-    Write-Host "OK Tot iniciat!" -ForegroundColor Green
+    Write-Host "OK Everything started!" -ForegroundColor Green
     Write-Host ""
-    Write-Host "Veure logs:" -ForegroundColor Yellow
+    Write-Host "View logs:" -ForegroundColor Yellow
     Write-Host "docker compose logs -f app" -ForegroundColor Gray
 } else {
     Write-Host ""
-    Write-Host "ERROR iniciant serveis" -ForegroundColor Red
+    Write-Host "ERROR starting services" -ForegroundColor Red
     exit 1
 }
 

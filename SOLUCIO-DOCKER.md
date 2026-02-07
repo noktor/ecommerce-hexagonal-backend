@@ -1,57 +1,57 @@
-# 🔧 SOLUCIÓ: Problema amb Docker
+# 🔧 SOLUTION: Docker Problem
 
-## ❌ EL PROBLEMA
+## ❌ THE PROBLEM
 
-Quan Docker Desktop s'acaba d'obrir, pot trigar 30-60 segons fins que el **daemon de Docker** estigui completament iniciat. Fins llavors, les comandes `docker ps` o `docker-compose` donen error: "Bad response from Docker engine".
+When Docker Desktop has just opened, it can take 30-60 seconds until the **Docker daemon** is completely started. Until then, `docker ps` or `docker-compose` commands give an error: "Bad response from Docker engine".
 
-## ✅ LA SOLUCIÓ
+## ✅ THE SOLUTION
 
-### Opció 1: Esperar i executar manualment (Més simple)
+### Option 1: Wait and run manually (Simplest)
 
-1. **Espera 30-60 segons** després d'obrir Docker Desktop
-2. **Obre un terminal NOU** (PowerShell o CMD)
-3. **Executa**:
+1. **Wait 30-60 seconds** after opening Docker Desktop
+2. **Open a NEW terminal** (PowerShell or CMD)
+3. **Run**:
    ```bash
-   cd C:\Users\Usuario\Downloads\ecommerce-hexagonal-backend
+   cd C:\Users\Usuario\Downloads\ecommerce-backend
    docker-compose up --build -d
    ```
 
-### Opció 2: Usar el script automàtic
+### Option 2: Use the automatic script
 
-Executa aquesta comanda en un terminal NOU:
+Run this command in a NEW terminal:
 
 ```powershell
-cd C:\Users\Usuario\Downloads\ecommerce-hexagonal-backend
+cd C:\Users\Usuario\Downloads\ecommerce-backend
 .\start-now.ps1
 ```
 
-Aquest script:
-- Espera que Docker estigui llest (fins a 60 segons)
-- Inicia Redis i l'aplicació automàticament
+This script:
+- Waits for Docker to be ready (up to 60 seconds)
+- Starts Redis and the application automatically
 
-### Opció 3: Verificar manualment
+### Option 3: Verify manually
 
-1. Obre un terminal NOU
-2. Executa: `docker ps`
-3. Si funciona (no dona error), executa: `docker-compose up --build -d`
+1. Open a NEW terminal
+2. Run: `docker ps`
+3. If it works (no error), run: `docker-compose up --build -d`
 
-## 🎯 PER QUÈ CAL UN TERMINAL NOU?
+## 🎯 WHY DO WE NEED A NEW TERMINAL?
 
-Quan obres Docker Desktop, el terminal que ja tenies obert pot no detectar el canvi. Un terminal nou detectarà que Docker està en execució.
+When you open Docker Desktop, the terminal you already had open may not detect the change. A new terminal will detect that Docker is running.
 
-## 📋 COMANDES ÚTILS
+## 📋 USEFUL COMMANDS
 
 ```bash
-# Veure si Docker funciona
+# Check if Docker works
 docker ps
 
-# Iniciar tot
+# Start everything
 docker-compose up --build -d
 
-# Veure logs
+# View logs
 docker-compose logs -f app
 
-# Aturar tot
+# Stop everything
 docker-compose down
 ```
 

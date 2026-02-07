@@ -36,6 +36,23 @@ import './infrastructure/models/OrderModel';
 
 import { createApp, startServer } from './api/server';
 
+// Global error handlers to catch unhandled errors
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit in production, just log the error
+  if (process.env.NODE_ENV === 'production') {
+    console.error('⚠️  Continuing despite unhandled rejection');
+  }
+});
+
+process.on('uncaughtException', (error: Error) => {
+  console.error('❌ Uncaught Exception:', error);
+  // In production, we might want to exit, but for now just log
+  if (process.env.NODE_ENV === 'production') {
+    console.error('⚠️  Application will continue, but this should be investigated');
+  }
+});
+
 async function main() {
   console.log('🚀 Starting E-commerce Backend with Hexagonal Architecture...\n');
 
@@ -73,18 +90,22 @@ async function main() {
     console.warn('Warning: Could not connect to RabbitMQ, continuing with fallback mode');
   }
 
-  const cacheService = new RedisCacheService(process.env.REDIS_URL || 'redis://localhost:6379');
+  // Only use Redis if REDIS_URL is explicitly configured
+  // In production, don't default to localhost
+  const redisUrl = process.env.REDIS_URL || (process.env.NODE_ENV === 'development' ? 'redis://localhost:6379' : undefined);
+  
+  const cacheService = new RedisCacheService(redisUrl);
   try {
     await cacheService.connect();
   } catch (error) {
-    console.warn('Warning: Could not connect to Redis, continuing with fallback mode');
+    console.warn('⚠️  Could not connect to Redis, continuing with in-memory fallback');
   }
 
-  const lockService = new RedisLockService(process.env.REDIS_URL || 'redis://localhost:6379');
+  const lockService = new RedisLockService(redisUrl);
   try {
     await lockService.connect();
   } catch (error) {
-    console.warn('Warning: Could not connect to Redis Lock Service, continuing with fallback mode');
+    console.warn('⚠️  Could not connect to Redis Lock Service, continuing with in-memory fallback');
   }
 
   // Initialize use cases
@@ -156,7 +177,19 @@ async function main() {
     console.warn('   See README.md for SendGrid setup instructions.');
   }
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  // Get frontend URL - required in production
+  const frontendUrl = process.env.FRONTEND_URL || (
+    process.env.NODE_ENV === 'production' 
+      ? (() => {
+          console.error('❌ FRONTEND_URL is not set in production!');
+          console.error('   Please set FRONTEND_URL in Render environment variables.');
+          console.error('   Example: https://noktor-store.netlify.app');
+          throw new Error('FRONTEND_URL is required in production');
+        })()
+      : 'http://localhost:5173'
+  );
+  
+  console.log(`🌐 Frontend URL configured: ${frontendUrl}`);
 
   // Initialize auth use cases
   const registerUserUseCase = new RegisterUserUseCase(
