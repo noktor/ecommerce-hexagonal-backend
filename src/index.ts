@@ -94,6 +94,13 @@ async function main() {
   // In production, don't default to localhost
   const redisUrl = process.env.REDIS_URL || (process.env.NODE_ENV === 'development' ? 'redis://localhost:6379' : undefined);
   
+  // Log Redis configuration
+  console.log('🔍 Redis Configuration:');
+  console.log(`   REDIS_URL env var: ${process.env.REDIS_URL || 'NOT SET'}`);
+  console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   Final redisUrl: ${redisUrl || 'undefined (will use in-memory fallback)'}`);
+  console.log('');
+  
   const cacheService = new RedisCacheService(redisUrl);
   try {
     await cacheService.connect();
@@ -113,7 +120,9 @@ async function main() {
     orderRepository,
     customerRepository,
     productRepository,
-    eventPublisher
+    cartRepository,
+    eventPublisher,
+    cacheService
   );
 
   const addToCartUseCase = new AddToCartUseCase(

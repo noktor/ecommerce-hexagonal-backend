@@ -6,6 +6,11 @@ export enum CustomerStatus {
   SUSPENDED = 'SUSPENDED'
 }
 
+export interface IPasswordHistory {
+  hash: string;
+  changedAt: Date;
+}
+
 export interface ICustomer extends Document {
   id: string;
   email: string;
@@ -13,12 +18,18 @@ export interface ICustomer extends Document {
   status: CustomerStatus;
   createdAt: Date;
   passwordHash?: string;
+  passwordHistory?: IPasswordHistory[]; // Last N password hashes
   emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpiry?: Date;
   resetToken?: string;
   resetTokenExpiry?: Date;
 }
+
+const PasswordHistorySchema = new Schema<IPasswordHistory>({
+  hash: { type: String, required: true },
+  changedAt: { type: Date, required: true, default: Date.now }
+}, { _id: false });
 
 const CustomerSchema = new Schema<ICustomer>({
   id: { type: String, required: true, unique: true, index: true },
@@ -32,6 +43,7 @@ const CustomerSchema = new Schema<ICustomer>({
   },
   createdAt: { type: Date, default: Date.now },
   passwordHash: { type: String, required: false },
+  passwordHistory: { type: [PasswordHistorySchema], required: false, default: [] },
   emailVerified: { type: Boolean, default: false },
   verificationToken: { type: String, required: false, index: true },
   verificationTokenExpiry: { type: Date, required: false },

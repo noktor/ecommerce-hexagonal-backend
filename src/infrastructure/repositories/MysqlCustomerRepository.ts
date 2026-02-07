@@ -60,6 +60,7 @@ export class MysqlCustomerRepository implements CustomerRepository {
         customer.status,
         customer.createdAt || new Date(),
         customer.passwordHash,
+        customer.passwordHistory || [],
         customer.emailVerified,
         customer.verificationToken,
         customer.verificationTokenExpiry,
@@ -73,9 +74,9 @@ export class MysqlCustomerRepository implements CustomerRepository {
 
   private initializeMockData(): void {
     const mockCustomers = [
-      new Customer('1', 'john@example.com', 'John Doe', CustomerStatus.ACTIVE, new Date()),
-      new Customer('2', 'jane@example.com', 'Jane Smith', CustomerStatus.ACTIVE, new Date()),
-      new Customer('3', 'bob@example.com', 'Bob Johnson', CustomerStatus.INACTIVE, new Date()),
+      new Customer('1', 'john@example.com', 'John Doe', CustomerStatus.ACTIVE, new Date(), undefined, []),
+      new Customer('2', 'jane@example.com', 'Jane Smith', CustomerStatus.ACTIVE, new Date(), undefined, []),
+      new Customer('3', 'bob@example.com', 'Bob Johnson', CustomerStatus.INACTIVE, new Date(), undefined, []),
     ];
 
     mockCustomers.forEach(customer => {

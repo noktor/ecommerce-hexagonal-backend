@@ -12,6 +12,7 @@ export class MongoCustomerRepository implements CustomerRepository {
       doc.status as CustomerStatus,
       doc.createdAt,
       doc.passwordHash,
+      doc.passwordHistory || [],
       doc.emailVerified || false,
       doc.verificationToken,
       doc.verificationTokenExpiry,
@@ -55,6 +56,7 @@ export class MongoCustomerRepository implements CustomerRepository {
       existing.name = customer.name;
       existing.status = customer.status;
       existing.passwordHash = customer.passwordHash;
+      existing.passwordHistory = customer.passwordHistory || [];
       existing.emailVerified = customer.emailVerified;
       existing.verificationToken = customer.verificationToken;
       existing.verificationTokenExpiry = customer.verificationTokenExpiry;
@@ -72,6 +74,7 @@ export class MongoCustomerRepository implements CustomerRepository {
         status: customer.status,
         createdAt: customer.createdAt || new Date(),
         passwordHash: customer.passwordHash,
+        passwordHistory: customer.passwordHistory || [],
         emailVerified: customer.emailVerified,
         verificationToken: customer.verificationToken,
         verificationTokenExpiry: customer.verificationTokenExpiry,

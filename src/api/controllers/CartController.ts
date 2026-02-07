@@ -128,6 +128,10 @@ export class CartController {
         data: cart
       });
     } catch (error) {
+      // Handle lock acquisition failures with 429 status
+      if (error instanceof Error && error.message.includes('currently being modified')) {
+        throw new AppError(429, error.message);
+      }
       next(error);
     }
   }
@@ -154,6 +158,10 @@ export class CartController {
         data: cart
       });
     } catch (error) {
+      // Handle lock acquisition failures with 429 status
+      if (error instanceof Error && error.message.includes('currently being modified')) {
+        throw new AppError(429, error.message);
+      }
       next(error);
     }
   }

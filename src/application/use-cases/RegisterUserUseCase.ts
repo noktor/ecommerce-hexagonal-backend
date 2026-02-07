@@ -46,6 +46,7 @@ export class RegisterUserUseCase {
       CustomerStatus.ACTIVE,
       new Date(),
       passwordHash,
+      [], // passwordHistory - empty for new users
       false, // email not verified yet
       verificationToken,
       verificationTokenExpiry

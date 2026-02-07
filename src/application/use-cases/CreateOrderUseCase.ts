@@ -4,7 +4,9 @@ import { Product } from '../../domain/Product';
 import { OrderRepository } from '../../domain/repositories/OrderRepository';
 import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 import { ProductRepository } from '../../domain/repositories/ProductRepository';
+import { CartRepository } from '../../domain/repositories/CartRepository';
 import { EventPublisher } from '../../domain/events/EventPublisher';
+import { CacheService } from '../../domain/services/CacheService';
 
 export interface CreateOrderRequest {
   customerId: string;
@@ -17,7 +19,9 @@ export class CreateOrderUseCase {
     private orderRepository: OrderRepository,
     private customerRepository: CustomerRepository,
     private productRepository: ProductRepository,
-    private eventPublisher: EventPublisher
+    private cartRepository: CartRepository,
+    private eventPublisher: EventPublisher,
+    private cacheService: CacheService
   ) {}
 
   async execute(request: CreateOrderRequest): Promise<Order> {
@@ -68,10 +72,32 @@ export class CreateOrderUseCase {
     // Save order
     await this.orderRepository.save(order);
 
-    // Update stock (with retry mechanism via events)
+    // Update stock and invalidate cache for affected products
+    const affectedCategories = new Set<string>();
     for (const item of request.items) {
+      // Get product to know its category before updating stock
+      const product = await this.productRepository.findById(item.productId);
+      if (product) {
+        affectedCategories.add(product.category);
+      }
+      
+      // Update stock
       await this.productRepository.updateStock(item.productId, -item.quantity);
+      
+      // Invalidate cache for this specific product
+      await this.cacheService.delete(`product:${item.productId}`);
     }
+
+    // Invalidate cache for product lists (all products and affected categories)
+    await this.cacheService.delete('products:all');
+    for (const category of affectedCategories) {
+      await this.cacheService.delete(`products:category:${category}`);
+    }
+
+    // Clear cart after successful order creation
+    await this.cartRepository.clear(request.customerId);
+    const cartCacheKey = `cart:${request.customerId}`;
+    await this.cacheService.delete(cartCacheKey);
 
     // Publish event with retry
     await this.eventPublisher.publishWithRetry('order.created', {

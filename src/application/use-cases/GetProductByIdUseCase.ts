@@ -22,9 +22,10 @@ export class GetProductByIdUseCase {
     // Get from repository
     const product = await this.productRepository.findById(productId);
 
-    // Cache the result if found (TTL: 10 minutes)
+    // Cache the result if found (TTL: 30 seconds for better stock freshness)
+    // Shorter TTL ensures users see reasonably fresh stock data
     if (product && useCache) {
-      await this.cacheService.set(cacheKey, product, 600);
+      await this.cacheService.set(cacheKey, product, 30);
     }
 
     return product;

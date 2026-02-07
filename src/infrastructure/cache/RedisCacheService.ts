@@ -23,15 +23,21 @@ export class RedisCacheService implements CacheService {
       return;
     }
 
+    // Log connection attempt
+    console.log(`🔌 [Cache Service] Attempting to connect to Redis at: ${this.redisUrl}`);
+    console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+
     try {
       this.redis = new Redis(this.redisUrl, {
         retryStrategy: (times) => {
           // Stop retrying after 3 attempts
           if (times > 3) {
             this.connectionFailed = true;
+            console.warn(`⚠️  [Cache Service] Redis connection failed after ${times} attempts`);
             return null; // Stop retrying
           }
           const delay = Math.min(times * 50, 2000);
+          console.log(`🔄 [Cache Service] Retrying Redis connection (attempt ${times})...`);
           return delay;
         },
         maxRetriesPerRequest: 1,
@@ -47,7 +53,7 @@ export class RedisCacheService implements CacheService {
 
       // Register error handler IMMEDIATELY to catch all errors
       this.redis.on('error', (error) => {
-        // Silently handle errors to prevent "Unhandled error event"
+        console.error(`❌ [Cache Service] Redis connection error: ${error.message}`);
         if (!this.connectionFailed) {
           this.connectionFailed = true;
         }
@@ -55,17 +61,19 @@ export class RedisCacheService implements CacheService {
       
       // Handle connection errors specifically
       this.redis.on('close', () => {
+        console.warn('⚠️  [Cache Service] Redis connection closed');
         if (!this.connectionFailed) {
           this.connectionFailed = true;
         }
       });
 
       this.redis.on('connect', () => {
-        console.log('✅ Connected to Redis');
+        console.log('✅ [Cache Service] Connected to Redis');
         this.connectionFailed = false;
       });
 
       // Try to connect with timeout
+      console.log('⏳ [Cache Service] Connecting to Redis...');
       await Promise.race([
         this.redis.connect(),
         new Promise<never>((_, reject) => 
@@ -74,11 +82,13 @@ export class RedisCacheService implements CacheService {
       ]);
 
       // Test connection
+      console.log('🏓 [Cache Service] Testing Redis connection with PING...');
       await this.redis.ping();
-      console.log('✅ Redis connection verified');
+      console.log('✅ [Cache Service] Redis connection verified');
     } catch (error) {
       this.connectionFailed = true;
-      console.warn('⚠️  Redis not available, using in-memory fallback');
+      console.warn('⚠️  [Cache Service] Redis not available, using in-memory fallback');
+      console.warn(`   Error details: ${error instanceof Error ? error.message : String(error)}`);
       if (this.redis) {
         try {
           // Remove all listeners to prevent error spam

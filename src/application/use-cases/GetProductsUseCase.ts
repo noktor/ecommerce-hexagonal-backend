@@ -31,9 +31,11 @@ export class GetProductsUseCase {
       ? await this.productRepository.findByCategory(request.category)
       : await this.productRepository.findAll();
 
-    // Cache the result (TTL: 5 minutes)
+    // Cache the result (TTL: 30 seconds for better stock freshness)
+    // Shorter TTL ensures users see reasonably fresh stock data without
+    // the overhead of invalidating cache on every cart modification
     if (request.useCache !== false) {
-      await this.cacheService.set(cacheKey, products, 300);
+      await this.cacheService.set(cacheKey, products, 30);
     }
 
     return products;

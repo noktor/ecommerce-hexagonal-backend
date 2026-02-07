@@ -23,14 +23,20 @@ export class RedisLockService implements LockService {
       return;
     }
 
+    // Log connection attempt
+    console.log(`🔌 [Lock Service] Attempting to connect to Redis at: ${this.redisUrl}`);
+    console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+
     try {
       this.redis = new Redis(this.redisUrl, {
         retryStrategy: (times) => {
           if (times > 3) {
             this.connectionFailed = true;
+            console.warn(`⚠️  [Lock Service] Redis connection failed after ${times} attempts`);
             return null;
           }
           const delay = Math.min(times * 50, 2000);
+          console.log(`🔄 [Lock Service] Retrying Redis connection (attempt ${times})...`);
           return delay;
         },
         maxRetriesPerRequest: 1,
@@ -44,8 +50,8 @@ export class RedisLockService implements LockService {
       });
 
       // Register error handler IMMEDIATELY to catch all errors
-      this.redis.on('error', () => {
-        // Silently handle errors to prevent "Unhandled error event"
+      this.redis.on('error', (error) => {
+        console.error(`❌ [Lock Service] Redis connection error: ${error.message}`);
         if (!this.connectionFailed) {
           this.connectionFailed = true;
         }
@@ -53,16 +59,18 @@ export class RedisLockService implements LockService {
       
       // Handle connection errors specifically
       this.redis.on('close', () => {
+        console.warn('⚠️  [Lock Service] Redis connection closed');
         if (!this.connectionFailed) {
           this.connectionFailed = true;
         }
       });
 
       this.redis.on('connect', () => {
-        console.log('✅ Redis Lock Service connected');
+        console.log('✅ [Lock Service] Redis Lock Service connected');
         this.connectionFailed = false;
       });
 
+      console.log('⏳ [Lock Service] Connecting to Redis...');
       await Promise.race([
         this.redis.connect(),
         new Promise<never>((_, reject) => 
@@ -70,10 +78,13 @@ export class RedisLockService implements LockService {
         )
       ]);
 
+      console.log('🏓 [Lock Service] Testing Redis connection with PING...');
       await this.redis.ping();
+      console.log('✅ [Lock Service] Redis connection verified');
     } catch (error) {
       this.connectionFailed = true;
-      console.warn('⚠️  Redis Lock Service not available, using in-memory fallback');
+      console.warn('⚠️  [Lock Service] Redis Lock Service not available, using in-memory fallback');
+      console.warn(`   Error details: ${error instanceof Error ? error.message : String(error)}`);
       if (this.redis) {
         try {
           this.redis.removeAllListeners();
