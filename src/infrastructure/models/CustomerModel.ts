@@ -12,6 +12,12 @@ export interface ICustomer extends Document {
   name: string;
   status: CustomerStatus;
   createdAt: Date;
+  passwordHash?: string;
+  emailVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpiry?: Date;
+  resetToken?: string;
+  resetTokenExpiry?: Date;
 }
 
 const CustomerSchema = new Schema<ICustomer>({
@@ -24,7 +30,13 @@ const CustomerSchema = new Schema<ICustomer>({
     required: true,
     default: CustomerStatus.ACTIVE
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  passwordHash: { type: String, required: false },
+  emailVerified: { type: Boolean, default: false },
+  verificationToken: { type: String, required: false, index: true },
+  verificationTokenExpiry: { type: Date, required: false },
+  resetToken: { type: String, required: false, index: true },
+  resetTokenExpiry: { type: Date, required: false }
 });
 
 export const CustomerModel = mongoose.model<ICustomer>('Customer', CustomerSchema);

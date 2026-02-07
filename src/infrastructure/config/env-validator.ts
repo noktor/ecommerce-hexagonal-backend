@@ -9,6 +9,11 @@ interface RequiredEnvVars {
   RABBITMQ_URL?: string;
   PORT?: string;
   NODE_ENV?: string;
+  JWT_SECRET?: string;
+  JWT_EXPIRES_IN?: string;
+  SENDGRID_API_KEY?: string;
+  SENDGRID_FROM_EMAIL?: string;
+  FRONTEND_URL?: string;
 }
 
 export function validateEnvironmentVariables(): void {
@@ -42,6 +47,33 @@ export function validateEnvironmentVariables(): void {
     throw new Error(
       'MONGODB_URI must be a valid MongoDB connection string (starting with mongodb:// or mongodb+srv://)'
     );
+  }
+
+  // Validate SendGrid configuration (optional but recommended)
+  const sendGridApiKey = process.env.SENDGRID_API_KEY;
+  const sendGridFromEmail = process.env.SENDGRID_FROM_EMAIL;
+  
+  if (!sendGridApiKey || !sendGridFromEmail) {
+    console.warn('⚠️  SendGrid email service not fully configured:');
+    if (!sendGridApiKey) {
+      console.warn('   - SENDGRID_API_KEY is missing');
+    }
+    if (!sendGridFromEmail) {
+      console.warn('   - SENDGRID_FROM_EMAIL is missing');
+    }
+    console.warn('   Email verification and password reset will not work properly.');
+    console.warn('   See README.md for SendGrid setup instructions.');
+  } else {
+    // Validate email format for SENDGRID_FROM_EMAIL
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sendGridFromEmail)) {
+      console.warn(`⚠️  SENDGRID_FROM_EMAIL has invalid email format: ${sendGridFromEmail}`);
+    }
+    
+    // Validate API key format (SendGrid keys start with SG.)
+    if (!sendGridApiKey.startsWith('SG.')) {
+      console.warn('⚠️  SENDGRID_API_KEY format may be incorrect (should start with SG.)');
+    }
   }
 
   // Log environment info (without sensitive data)

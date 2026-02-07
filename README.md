@@ -8,7 +8,9 @@ E-commerce backend implemented with **Hexagonal Architecture** (Ports & Adapters
 - ✅ **Retry System** - RabbitMQ with automatic retry and dead letter queue
 - ✅ **Cache** - Redis to improve performance (with in-memory fallback)
 - ✅ **TypeScript** - Static typing for better security
-- ✅ **Use Cases** - CreateOrder, AddToCart, GetProducts, GetProductById
+- ✅ **User Authentication** - JWT-based authentication with email verification
+- ✅ **Email Service** - SendGrid integration for email verification and password reset
+- ✅ **Use Cases** - CreateOrder, AddToCart, GetProducts, GetProductById, Register, Login
 
 ## 🏗️ Project Structure
 
@@ -199,6 +201,43 @@ If you prefer to run only Redis with Docker and the application locally:
 - ✅ Use different credentials for development, QA, and production environments
 
 **📚 For QA/Production deployment**, see [Deployment Guide](docs/DEPLOYMENT.md) for instructions on using GitHub Secrets.
+
+### Step 3.5: Configure SendGrid Email Service (Required for Authentication)
+
+The application uses SendGrid for sending email verification and password reset emails. Follow these steps to set up SendGrid:
+
+1. **Create a SendGrid Account**:
+   - Go to [https://sendgrid.com](https://sendgrid.com)
+   - Sign up for a free account (allows up to 100 emails/day)
+
+2. **Complete Single Sender Verification**:
+   - In SendGrid dashboard, go to **Settings** → **Sender Authentication**
+   - Click **Verify a Single Sender**
+   - Fill in the form with your email address and information
+   - Check your email and click the verification link
+   - Wait for verification to complete (usually instant)
+
+3. **Generate an API Key**:
+   - Go to **Settings** → **API Keys**
+   - Click **Create API Key**
+   - Name it (e.g., "E-commerce Backend")
+   - Select **Full Access** or **Restricted Access** with Mail Send permissions
+   - Click **Create & View**
+   - **Copy the API key immediately** (you won't be able to see it again)
+   - The API key will start with `SG.`
+
+4. **Add to `.env` file**:
+   ```env
+   SENDGRID_API_KEY=SG.your-actual-api-key-here
+   SENDGRID_FROM_EMAIL=your-verified-email@example.com
+   ```
+
+5. **Verify Configuration**:
+   - Restart your application
+   - You should see: `✅ SendGrid email service configured`
+   - If you see warnings, check that both variables are set correctly
+
+**Note**: Without SendGrid configuration, email verification and password reset will not work. Users will be able to register but cannot verify their email or reset passwords.
 
 ### Step 4: Run with Docker Compose (Recommended)
 

@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction, Request } from 'express';
 import { CreateOrderUseCase } from '../../application/use-cases/CreateOrderUseCase';
 import { OrderRepository } from '../../domain/repositories/OrderRepository';
 import { AppError } from '../middleware/errorHandler';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export class OrdersController {
   constructor(
@@ -9,12 +10,16 @@ export class OrdersController {
     private orderRepository: OrderRepository
   ) {}
 
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerId, items, shippingAddress } = req.body;
+      if (!req.userId) {
+        throw new AppError(401, 'Authentication required');
+      }
 
-      if (!customerId || !items || !shippingAddress) {
-        throw new AppError(400, 'Missing required fields: customerId, items, shippingAddress');
+      const { items, shippingAddress } = req.body;
+
+      if (!items || !shippingAddress) {
+        throw new AppError(400, 'Missing required fields: items, shippingAddress');
       }
 
       if (!Array.isArray(items) || items.length === 0) {
@@ -22,7 +27,7 @@ export class OrdersController {
       }
 
       const order = await this.createOrderUseCase.execute({
-        customerId,
+        customerId: req.userId,
         items,
         shippingAddress
       });
@@ -36,8 +41,11 @@ export class OrdersController {
     }
   }
 
-  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (!req.userId) {
+        throw new AppError(401, 'Authentication required');
+      }
       const { id } = req.params;
 
       const order = await this.orderRepository.findById(id);

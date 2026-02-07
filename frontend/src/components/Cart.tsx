@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { api, Cart as CartType, Product } from '../services/api';
 
 interface CartProps {
-  customerId: string;
   onCheckout: (items: Array<{ productId: string; quantity: number }>) => void;
 }
 
-export function Cart({ customerId, onCheckout }: CartProps) {
+export function Cart({ onCheckout }: CartProps) {
   const [cart, setCart] = useState<CartType | null>(null);
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
@@ -14,13 +13,13 @@ export function Cart({ customerId, onCheckout }: CartProps) {
 
   useEffect(() => {
     loadCart();
-  }, [customerId]);
+  }, []);
 
   const loadCart = async () => {
     try {
       setLoading(true);
       setError(null);
-      const cartData = await api.cart.getByCustomerId(customerId);
+      const cartData = await api.cart.getByCustomerId();
       setCart(cartData);
 
       // Load product details for cart items
@@ -50,15 +49,15 @@ export function Cart({ customerId, onCheckout }: CartProps) {
 
   const handleRemoveItem = async (productId: string) => {
     try {
-      await api.cart.removeItem(customerId, productId);
-      await loadCart(); // Recarregar el carret després d'eliminar
+      await api.cart.removeItem(productId);
+      await loadCart(); // Reload cart after removing item
     } catch (err) {
       alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   if (loading) {
-    return <div style={{ padding: '20px' }}>Carregant carret...</div>;
+    return <div style={{ padding: '20px' }}>Loading cart...</div>;
   }
 
   if (error) {
@@ -68,8 +67,8 @@ export function Cart({ customerId, onCheckout }: CartProps) {
   if (!cart || cart.items.length === 0) {
     return (
       <div style={{ padding: '20px' }}>
-        <h2>Carret</h2>
-        <p>El carret està buit</p>
+        <h2>Cart</h2>
+        <p>Your cart is empty</p>
       </div>
     );
   }
@@ -81,7 +80,7 @@ export function Cart({ customerId, onCheckout }: CartProps) {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Carret</h2>
+      <h2>Cart</h2>
       <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px' }}>
         {cart.items.map((item) => {
           const product = products[item.productId];
@@ -101,7 +100,7 @@ export function Cart({ customerId, onCheckout }: CartProps) {
               <div style={{ flex: 1 }}>
                 <strong>{product.name}</strong>
                 <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                  Quantitat: {item.quantity} × ${product.price.toFixed(2)}
+                  Quantity: {item.quantity} × ${product.price.toFixed(2)}
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -120,7 +119,7 @@ export function Cart({ customerId, onCheckout }: CartProps) {
                     fontSize: '12px',
                     fontWeight: 'bold'
                   }}
-                  title="Eliminar del carret"
+                  title="Remove from cart"
                 >
                   ✕
                 </button>
@@ -156,7 +155,7 @@ export function Cart({ customerId, onCheckout }: CartProps) {
             fontWeight: 'bold'
           }}
         >
-          Finalitzar Comanda
+          Checkout
         </button>
       </div>
     </div>

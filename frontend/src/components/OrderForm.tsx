@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { api, Order } from '../services/api';
 
 interface OrderFormProps {
-  customerId: string;
   items: Array<{ productId: string; quantity: number }>;
   onOrderCreated: (order: Order) => void;
   onCancel: () => void;
 }
 
-export function OrderForm({ customerId, items, onOrderCreated, onCancel }: OrderFormProps) {
+export function OrderForm({ items, onOrderCreated, onCancel }: OrderFormProps) {
   const [shippingAddress, setShippingAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,14 +16,14 @@ export function OrderForm({ customerId, items, onOrderCreated, onCancel }: Order
     e.preventDefault();
 
     if (!shippingAddress.trim()) {
-      setError('La direcció d\'enviament és obligatòria');
+      setError('Shipping address is required');
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      const order = await api.orders.create(customerId, items, shippingAddress);
+      const order = await api.orders.create(items, shippingAddress);
       onOrderCreated(order);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error creating order');
@@ -35,16 +34,16 @@ export function OrderForm({ customerId, items, onOrderCreated, onCancel }: Order
 
   return (
     <div style={{ padding: '20px', maxWidth: '500px' }}>
-      <h2>Finalitzar Comanda</h2>
+      <h2>Complete Order</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            Direcció d'enviament:
+            Shipping Address:
           </label>
           <textarea
             value={shippingAddress}
             onChange={(e) => setShippingAddress(e.target.value)}
-            placeholder="Introdueix la direcció d'enviament"
+            placeholder="Enter shipping address"
             rows={4}
             style={{
               width: '100%',
@@ -76,7 +75,7 @@ export function OrderForm({ customerId, items, onOrderCreated, onCancel }: Order
               fontSize: '14px'
             }}
           >
-            Cancel·lar
+            Cancel
           </button>
           <button
             type="submit"
@@ -92,7 +91,7 @@ export function OrderForm({ customerId, items, onOrderCreated, onCancel }: Order
               fontWeight: 'bold'
             }}
           >
-            {loading ? 'Creant comanda...' : 'Crear Comanda'}
+            {loading ? 'Creating order...' : 'Create Order'}
           </button>
         </div>
       </form>

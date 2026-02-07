@@ -1,10 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { AddToCartUseCase } from '../../application/use-cases/AddToCartUseCase';
 import { RemoveFromCartUseCase } from '../../application/use-cases/RemoveFromCartUseCase';
 import { CartRepository } from '../../domain/repositories/CartRepository';
 import { CacheService } from '../../domain/services/CacheService';
 import { Cart } from '../../domain/Cart';
 import { AppError } from '../middleware/errorHandler';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export class CartController {
   constructor(
@@ -14,9 +15,12 @@ export class CartController {
     private cacheService: CacheService
   ) {}
 
-  async getByCustomerId(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getByCustomerId(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerId } = req.params;
+      if (!req.userId) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const customerId = req.userId;
       const cacheKey = `cart:${customerId}`;
 
       // Try to get from cache first
@@ -97,12 +101,16 @@ export class CartController {
     }
   }
 
-  async addItem(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async addItem(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerId, productId, quantity } = req.body;
+      if (!req.userId) {
+        throw new AppError(401, 'Authentication required');
+      }
 
-      if (!customerId || !productId || !quantity) {
-        throw new AppError(400, 'Missing required fields: customerId, productId, quantity');
+      const { productId, quantity } = req.body;
+
+      if (!productId || !quantity) {
+        throw new AppError(400, 'Missing required fields: productId, quantity');
       }
 
       if (quantity <= 0) {
@@ -110,7 +118,7 @@ export class CartController {
       }
 
       const cart = await this.addToCartUseCase.execute({
-        customerId,
+        customerId: req.userId,
         productId,
         quantity
       });
@@ -124,16 +132,20 @@ export class CartController {
     }
   }
 
-  async removeItem(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async removeItem(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerId, productId } = req.body;
+      if (!req.userId) {
+        throw new AppError(401, 'Authentication required');
+      }
 
-      if (!customerId || !productId) {
-        throw new AppError(400, 'Missing required fields: customerId, productId');
+      const { productId } = req.body;
+
+      if (!productId) {
+        throw new AppError(400, 'Missing required field: productId');
       }
 
       const cart = await this.removeFromCartUseCase.execute({
-        customerId,
+        customerId: req.userId,
         productId
       });
 

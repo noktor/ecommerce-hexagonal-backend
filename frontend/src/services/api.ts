@@ -1,6 +1,11 @@
 // API URL from environment variable with fallback to default
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Get auth token from localStorage
+function getAuthToken(): string | null {
+  return localStorage.getItem('auth_token');
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -51,12 +56,19 @@ export interface ApiResponse<T> {
 }
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   const data: ApiResponse<T> = await response.json();
@@ -79,27 +91,27 @@ export const api = {
     },
   },
   cart: {
-    getByCustomerId: (customerId: string): Promise<Cart> => {
-      return fetchApi<Cart>(`/cart/${customerId}`);
+    getByCustomerId: (): Promise<Cart> => {
+      return fetchApi<Cart>('/cart/me');
     },
-    addItem: (customerId: string, productId: string, quantity: number): Promise<Cart> => {
+    addItem: (productId: string, quantity: number): Promise<Cart> => {
       return fetchApi<Cart>('/cart', {
         method: 'POST',
-        body: JSON.stringify({ customerId, productId, quantity }),
+        body: JSON.stringify({ productId, quantity }),
       });
     },
-    removeItem: (customerId: string, productId: string): Promise<Cart> => {
+    removeItem: (productId: string): Promise<Cart> => {
       return fetchApi<Cart>('/cart/item', {
         method: 'DELETE',
-        body: JSON.stringify({ customerId, productId }),
+        body: JSON.stringify({ productId }),
       });
     },
   },
   orders: {
-    create: (customerId: string, items: Array<{ productId: string; quantity: number }>, shippingAddress: string): Promise<Order> => {
+    create: (items: Array<{ productId: string; quantity: number }>, shippingAddress: string): Promise<Order> => {
       return fetchApi<Order>('/orders', {
         method: 'POST',
-        body: JSON.stringify({ customerId, items, shippingAddress }),
+        body: JSON.stringify({ items, shippingAddress }),
       });
     },
     getById: (id: string): Promise<Order> => {

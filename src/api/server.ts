@@ -5,6 +5,8 @@ import { createApiRouter } from './routes';
 import { ProductsController } from './controllers/ProductsController';
 import { CartController } from './controllers/CartController';
 import { OrdersController } from './controllers/OrdersController';
+import { AuthController } from './controllers/AuthController';
+import { TokenService } from '../domain/services/TokenService';
 
 export interface UseCases {
   getProductsUseCase: any;
@@ -12,15 +14,23 @@ export interface UseCases {
   addToCartUseCase: any;
   removeFromCartUseCase: any;
   createOrderUseCase: any;
+  registerUserUseCase: any;
+  loginUserUseCase: any;
+  verifyEmailUseCase: any;
+  requestPasswordResetUseCase: any;
+  resetPasswordUseCase: any;
+  getCurrentUserUseCase: any;
 }
 
 export interface Repositories {
   cartRepository: any;
   orderRepository: any;
+  customerRepository: any;
 }
 
 export interface Services {
   cacheService: any;
+  tokenService: TokenService;
 }
 
 export function createApp(
@@ -58,8 +68,23 @@ export function createApp(
     repositories.orderRepository
   );
 
+  const authController = new AuthController(
+    useCases.registerUserUseCase,
+    useCases.loginUserUseCase,
+    useCases.verifyEmailUseCase,
+    useCases.requestPasswordResetUseCase,
+    useCases.resetPasswordUseCase,
+    useCases.getCurrentUserUseCase
+  );
+
   // API Routes
-  app.use('/api', createApiRouter(productsController, cartController, ordersController));
+  app.use('/api', createApiRouter(
+    productsController,
+    cartController,
+    ordersController,
+    authController,
+    services.tokenService
+  ));
 
   // Error handler (must be last)
   app.use(errorHandler);
