@@ -278,7 +278,7 @@ export class SendGridEmailService implements EmailService {
         const errorMessage = errorBody?.errors?.[0]?.message || error.message;
         console.error(
           `SendGrid API Error (Status: ${statusCode}):`,
-          JSON.stringify(errorBody, null, 2)
+          JSON.stringify(errorMessage, null, 2)
         );
       }
       // Don't throw here - email failure shouldn't break the order creation flow
