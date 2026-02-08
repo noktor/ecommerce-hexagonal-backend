@@ -11,7 +11,9 @@ export class MongoOrderRepository implements OrderRepository {
       doc.total,
       doc.status as OrderStatus,
       doc.createdAt,
-      doc.shippingAddress
+      doc.shippingAddress,
+      doc.guestEmail,
+      doc.guestName
     );
   }
 
@@ -25,7 +27,9 @@ export class MongoOrderRepository implements OrderRepository {
         total: order.total,
         status: order.status,
         createdAt: order.createdAt,
-        shippingAddress: order.shippingAddress
+        shippingAddress: order.shippingAddress,
+        guestEmail: order.guestEmail,
+        guestName: order.guestName
       },
       { upsert: true, new: true }
     ).exec();

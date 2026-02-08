@@ -18,12 +18,14 @@ export interface OrderItem {
 export class Order {
   constructor(
     public readonly id: string,
-    public readonly customerId: string,
+    public readonly customerId: string | null, // Allow null for guest orders
     public readonly items: OrderItem[],
     public readonly total: number,
     public readonly status: OrderStatus,
     public readonly createdAt: Date,
-    public readonly shippingAddress: string
+    public readonly shippingAddress: string,
+    public readonly guestEmail?: string, // Email for guest orders
+    public readonly guestName?: string // Name for guest orders
   ) {}
 
   calculateTotal(): number {

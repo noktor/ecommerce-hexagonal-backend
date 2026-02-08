@@ -9,9 +9,11 @@ import { EventPublisher } from '../../domain/events/EventPublisher';
 import { CacheService } from '../../domain/services/CacheService';
 
 export interface CreateOrderRequest {
-  customerId: string;
+  customerId?: string | null; // Optional for guest orders
   items: Array<{ productId: string; quantity: number }>;
   shippingAddress: string;
+  guestEmail?: string; // Email for guest orders
+  guestName?: string; // Name for guest orders
 }
 
 export class CreateOrderUseCase {
@@ -25,13 +27,24 @@ export class CreateOrderUseCase {
   ) {}
 
   async execute(request: CreateOrderRequest): Promise<Order> {
-    // Validate customer
-    const customer = await this.customerRepository.findById(request.customerId);
-    if (!customer) {
-      throw new Error('Customer not found');
-    }
-    if (!customer.canPlaceOrder()) {
-      throw new Error(`Customer cannot place orders. Status: ${customer.status}`);
+    // Validate customer (only if customerId is provided)
+    let customerId: string | null = null;
+    if (request.customerId) {
+      const customer = await this.customerRepository.findById(request.customerId);
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+      if (!customer.canPlaceOrder()) {
+        throw new Error(`Customer cannot place orders. Status: ${customer.status}`);
+      }
+      customerId = customer.id;
+    } else {
+      // Guest order - validate email and name are provided
+      if (!request.guestEmail || !request.guestName) {
+        throw new Error('Guest email and name are required for guest orders');
+      }
+      // Use "guest" as customerId for guest orders (standard in e-commerce)
+      customerId = null;
     }
 
     // Validate products and build order items
@@ -61,12 +74,14 @@ export class CreateOrderUseCase {
     // Create order
     const order = new Order(
       this.generateOrderId(),
-      customer.id,
+      customerId,
       orderItems,
       total,
       OrderStatus.PENDING,
       new Date(),
-      request.shippingAddress
+      request.shippingAddress,
+      request.guestEmail,
+      request.guestName
     );
 
     // Save order
@@ -94,18 +109,22 @@ export class CreateOrderUseCase {
       await this.cacheService.delete(`products:category:${category}`);
     }
 
-    // Clear cart after successful order creation
-    await this.cartRepository.clear(request.customerId);
-    const cartCacheKey = `cart:${request.customerId}`;
-    await this.cacheService.delete(cartCacheKey);
+    // Clear cart after successful order creation (only for authenticated users)
+    if (customerId) {
+      await this.cartRepository.clear(customerId);
+      const cartCacheKey = `cart:${customerId}`;
+      await this.cacheService.delete(cartCacheKey);
+    }
 
     // Publish event with retry
     await this.eventPublisher.publishWithRetry('order.created', {
       orderId: order.id,
-      customerId: order.customerId,
+      customerId: order.customerId || 'guest',
       total: order.total,
       items: order.items,
-      status: order.status
+      status: order.status,
+      guestEmail: order.guestEmail,
+      guestName: order.guestName
     });
 
     return order;

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { OrdersController } from '../controllers/OrdersController';
-import { createAuthMiddleware } from '../middleware/auth';
+import { createOptionalAuthMiddleware } from '../middleware/auth';
 import { TokenService } from '../../domain/services/TokenService';
 
 export function createOrdersRouter(
@@ -8,7 +8,7 @@ export function createOrdersRouter(
   tokenService: TokenService
 ): Router {
   const router = Router();
-  const authMiddleware = createAuthMiddleware(tokenService);
+  const optionalAuthMiddleware = createOptionalAuthMiddleware(tokenService);
 
   /**
    * @swagger
@@ -44,7 +44,8 @@ export function createOrdersRouter(
    *       500:
    *         description: Internal server error
    */
-  router.post('/', authMiddleware, (req, res, next) => {
+  // Create order - supports both authenticated and guest users
+  router.post('/', optionalAuthMiddleware, (req, res, next) => {
     controller.create(req as any, res, next);
   });
 
@@ -83,7 +84,9 @@ export function createOrdersRouter(
    *       500:
    *         description: Internal server error
    */
-  router.get('/:id', authMiddleware, (req, res, next) => {
+  // Get order by ID - supports both authenticated and guest users
+  // Note: In production, you might want to add order lookup by email for guest orders
+  router.get('/:id', optionalAuthMiddleware, (req, res, next) => {
     controller.getById(req as any, res, next);
   });
 
