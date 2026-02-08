@@ -1,6 +1,6 @@
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { EmailService } from '../../domain/services/EmailService';
 import { randomUUID } from 'crypto';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { EmailService } from '../../domain/services/EmailService';
 
 export interface RequestPasswordResetInput {
   email: string;
@@ -21,12 +21,12 @@ export class RequestPasswordResetUseCase {
   async execute(input: RequestPasswordResetInput): Promise<RequestPasswordResetOutput> {
     // Find customer by email
     const customer = await this.customerRepository.findByEmail(input.email);
-    
+
     // Don't reveal if email exists or not (security best practice)
     if (!customer) {
       return {
         success: true,
-        message: 'If the email exists, a password reset link has been sent.'
+        message: 'If the email exists, a password reset link has been sent.',
       };
     }
 
@@ -45,13 +45,12 @@ export class RequestPasswordResetUseCase {
       email: customer.email,
       name: customer.name,
       resetToken: resetToken,
-      resetUrl
+      resetUrl,
     });
 
     return {
       success: true,
-      message: 'If the email exists, a password reset link has been sent.'
+      message: 'If the email exists, a password reset link has been sent.',
     };
   }
 }
-

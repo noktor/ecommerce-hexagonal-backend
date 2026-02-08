@@ -1,6 +1,6 @@
-import { Order, OrderItem, OrderStatus } from '../../domain/Order';
-import { OrderRepository } from '../../domain/repositories/OrderRepository';
-import { OrderModel, IOrder } from '../models/OrderModel';
+import { Order, type OrderItem, type OrderStatus } from '../../domain/Order';
+import type { OrderRepository } from '../../domain/repositories/OrderRepository';
+import { type IOrder, OrderModel } from '../models/OrderModel';
 
 export class MongoOrderRepository implements OrderRepository {
   private documentToOrder(doc: IOrder): Order {
@@ -29,7 +29,7 @@ export class MongoOrderRepository implements OrderRepository {
         createdAt: order.createdAt,
         shippingAddress: order.shippingAddress,
         guestEmail: order.guestEmail,
-        guestName: order.guestName
+        guestName: order.guestName,
       },
       { upsert: true, new: true }
     ).exec();
@@ -42,14 +42,11 @@ export class MongoOrderRepository implements OrderRepository {
 
   async findByCustomerId(customerId: string): Promise<Order[]> {
     const docs = await OrderModel.find({ customerId }).exec();
-    return docs.map(doc => this.documentToOrder(doc));
+    return docs.map((doc) => this.documentToOrder(doc));
   }
 
   async updateStatus(orderId: string, status: OrderStatus): Promise<void> {
-    const result = await OrderModel.updateOne(
-      { id: orderId },
-      { $set: { status } }
-    ).exec();
+    const result = await OrderModel.updateOne({ id: orderId }, { $set: { status } }).exec();
 
     if (result.matchedCount === 0) {
       throw new Error(`Order not found: ${orderId}`);

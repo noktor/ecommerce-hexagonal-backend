@@ -32,4 +32,3 @@ export interface EmailService {
   sendPasswordResetConfirmation(email: string, name: string): Promise<void>;
   sendOrderConfirmationEmail(data: OrderConfirmationData): Promise<void>;
 }
-

@@ -1,7 +1,7 @@
-import { Customer, CustomerStatus } from '../../domain/Customer';
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { CustomerModel, ICustomer } from '../models/CustomerModel';
 import { randomUUID } from 'crypto';
+import { Customer, type CustomerStatus } from '../../domain/Customer';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import { CustomerModel, type ICustomer } from '../models/CustomerModel';
 
 export class MongoCustomerRepository implements CustomerRepository {
   private documentToCustomer(doc: ICustomer): Customer {
@@ -32,24 +32,24 @@ export class MongoCustomerRepository implements CustomerRepository {
   }
 
   async findByVerificationToken(token: string): Promise<Customer | null> {
-    const doc = await CustomerModel.findOne({ 
+    const doc = await CustomerModel.findOne({
       verificationToken: token,
-      verificationTokenExpiry: { $gt: new Date() }
+      verificationTokenExpiry: { $gt: new Date() },
     }).exec();
     return doc ? this.documentToCustomer(doc) : null;
   }
 
   async findByResetToken(token: string): Promise<Customer | null> {
-    const doc = await CustomerModel.findOne({ 
+    const doc = await CustomerModel.findOne({
       resetToken: token,
-      resetTokenExpiry: { $gt: new Date() }
+      resetTokenExpiry: { $gt: new Date() },
     }).exec();
     return doc ? this.documentToCustomer(doc) : null;
   }
 
   async save(customer: Customer): Promise<Customer> {
     const existing = await CustomerModel.findOne({ id: customer.id }).exec();
-    
+
     if (existing) {
       // Update existing customer
       existing.email = customer.email;
@@ -62,7 +62,7 @@ export class MongoCustomerRepository implements CustomerRepository {
       existing.verificationTokenExpiry = customer.verificationTokenExpiry;
       existing.resetToken = customer.resetToken;
       existing.resetTokenExpiry = customer.resetTokenExpiry;
-      
+
       const updated = await existing.save();
       return this.documentToCustomer(updated);
     } else {
@@ -79,9 +79,9 @@ export class MongoCustomerRepository implements CustomerRepository {
         verificationToken: customer.verificationToken,
         verificationTokenExpiry: customer.verificationTokenExpiry,
         resetToken: customer.resetToken,
-        resetTokenExpiry: customer.resetTokenExpiry
+        resetTokenExpiry: customer.resetTokenExpiry,
       });
-      
+
       const saved = await newCustomer.save();
       return this.documentToCustomer(saved);
     }

@@ -14,19 +14,19 @@ export class Cart {
   ) {}
 
   addItem(productId: string, quantity: number): CartItem[] {
-    const existingItem = this.items.find(item => item.productId === productId);
-    
+    const existingItem = this.items.find((item) => item.productId === productId);
+
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
       this.items.push({ productId, quantity });
     }
-    
+
     return this.items;
   }
 
   removeItem(productId: string): CartItem[] {
-    return this.items.filter(item => item.productId !== productId);
+    return this.items.filter((item) => item.productId !== productId);
   }
 
   isEmpty(): boolean {
@@ -49,4 +49,3 @@ export class Cart {
     return Math.max(0, diff);
   }
 }
-

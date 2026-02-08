@@ -1,7 +1,7 @@
 export enum CustomerStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export interface PasswordHistory {
@@ -90,11 +90,11 @@ export class Customer {
 
   /**
    * Updates the password and manages password history following security best practices.
-   * 
+   *
    * Security standard compliance:
    * - NIST SP 800-63B: Prevents password reuse by maintaining history
    * - OWASP: Recommends keeping last 3-5 passwords
-   * 
+   *
    * @param passwordHash - The new hashed password
    * @param maxHistorySize - Maximum number of previous passwords to keep (default: 5)
    * @returns New Customer instance with updated password and history
@@ -103,24 +103,24 @@ export class Customer {
     // Add current password to history before replacing it
     // This ensures we can check against it in future password changes
     const newHistory: PasswordHistory[] = [];
-    
+
     // Add current password to history if it exists
     if (this.passwordHash) {
       newHistory.push({
         hash: this.passwordHash,
-        changedAt: new Date()
+        changedAt: new Date(),
       });
     }
-    
+
     // Combine new history entry with existing history
     // Existing history is already sorted by most recent first
     const existingHistory = this.passwordHistory || [];
     const combinedHistory = [...newHistory, ...existingHistory];
-    
+
     // Keep only the last N passwords (excluding the new one we're about to set)
     // This prevents unbounded growth of password history
     const trimmedHistory = combinedHistory.slice(0, maxHistorySize - 1);
-    
+
     return new Customer(
       this.id,
       this.email,
@@ -171,4 +171,3 @@ export class Customer {
     );
   }
 }
-

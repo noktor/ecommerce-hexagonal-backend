@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import { RegisterUserUseCase } from '../../application/use-cases/RegisterUserUseCase';
-import { LoginUserUseCase } from '../../application/use-cases/LoginUserUseCase';
-import { VerifyEmailUseCase } from '../../application/use-cases/VerifyEmailUseCase';
-import { RequestPasswordResetUseCase } from '../../application/use-cases/RequestPasswordResetUseCase';
-import { ResetPasswordUseCase } from '../../application/use-cases/ResetPasswordUseCase';
-import { GetCurrentUserUseCase } from '../../application/use-cases/GetCurrentUserUseCase';
-import { AuthenticatedRequest } from '../middleware/auth';
+import type { NextFunction, Request, Response } from 'express';
+import type { GetCurrentUserUseCase } from '../../application/use-cases/GetCurrentUserUseCase';
+import type { LoginUserUseCase } from '../../application/use-cases/LoginUserUseCase';
+import type { RegisterUserUseCase } from '../../application/use-cases/RegisterUserUseCase';
+import type { RequestPasswordResetUseCase } from '../../application/use-cases/RequestPasswordResetUseCase';
+import type { ResetPasswordUseCase } from '../../application/use-cases/ResetPasswordUseCase';
+import type { VerifyEmailUseCase } from '../../application/use-cases/VerifyEmailUseCase';
+import type { AuthenticatedRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
 export class AuthController {
@@ -45,8 +45,8 @@ export class AuthController {
         data: {
           id: result.customer.id,
           email: result.customer.email,
-          name: result.customer.name
-        }
+          name: result.customer.name,
+        },
       });
     } catch (error) {
       next(error);
@@ -67,8 +67,8 @@ export class AuthController {
         success: true,
         data: {
           token: result.token,
-          user: result.customer
-        }
+          user: result.customer,
+        },
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -91,7 +91,7 @@ export class AuthController {
 
       res.json({
         success: result.success,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -114,7 +114,7 @@ export class AuthController {
 
       res.json({
         success: result.success,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       next(error);
@@ -138,7 +138,7 @@ export class AuthController {
 
       res.json({
         success: result.success,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -149,7 +149,11 @@ export class AuthController {
     }
   }
 
-  async getCurrentUser(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  async getCurrentUser(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       if (!req.userId) {
         throw new AppError(401, 'User ID not found in request');
@@ -159,11 +163,10 @@ export class AuthController {
 
       res.json({
         success: true,
-        data: user
+        data: user,
       });
     } catch (error) {
       next(error);
     }
   }
 }
-

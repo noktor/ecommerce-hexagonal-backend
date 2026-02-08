@@ -1,33 +1,32 @@
 // Load environment variables first
 import 'dotenv/config';
 
-import { validateEnvironmentVariables } from './infrastructure/config/env-validator';
+import { AddToCartUseCase } from './application/use-cases/AddToCartUseCase';
 
 import { CreateOrderUseCase } from './application/use-cases/CreateOrderUseCase';
-import { AddToCartUseCase } from './application/use-cases/AddToCartUseCase';
-import { RemoveFromCartUseCase } from './application/use-cases/RemoveFromCartUseCase';
-import { GetProductsUseCase } from './application/use-cases/GetProductsUseCase';
+import { GetCurrentUserUseCase } from './application/use-cases/GetCurrentUserUseCase';
 import { GetProductByIdUseCase } from './application/use-cases/GetProductByIdUseCase';
-import { RegisterUserUseCase } from './application/use-cases/RegisterUserUseCase';
+import { GetProductsUseCase } from './application/use-cases/GetProductsUseCase';
 import { LoginUserUseCase } from './application/use-cases/LoginUserUseCase';
-import { VerifyEmailUseCase } from './application/use-cases/VerifyEmailUseCase';
+import { RegisterUserUseCase } from './application/use-cases/RegisterUserUseCase';
+import { RemoveFromCartUseCase } from './application/use-cases/RemoveFromCartUseCase';
 import { RequestPasswordResetUseCase } from './application/use-cases/RequestPasswordResetUseCase';
 import { ResetPasswordUseCase } from './application/use-cases/ResetPasswordUseCase';
-import { GetCurrentUserUseCase } from './application/use-cases/GetCurrentUserUseCase';
-
-import { MongoProductRepository } from './infrastructure/repositories/MongoProductRepository';
+import { VerifyEmailUseCase } from './application/use-cases/VerifyEmailUseCase';
+import type { EmailService } from './domain/services/EmailService';
+import { RedisCacheService } from './infrastructure/cache/RedisCacheService';
+import { validateEnvironmentVariables } from './infrastructure/config/env-validator';
+import { closeMongoDBConnection, connectToMongoDB } from './infrastructure/database/mongodb';
+import { seedDatabase } from './infrastructure/database/seed';
+import { RabbitMQEventPublisher } from './infrastructure/events/RabbitMQEventPublisher';
+import { RedisLockService } from './infrastructure/locks/RedisLockService';
+import { MongoCartRepository } from './infrastructure/repositories/MongoCartRepository';
 import { MongoCustomerRepository } from './infrastructure/repositories/MongoCustomerRepository';
 import { MongoOrderRepository } from './infrastructure/repositories/MongoOrderRepository';
-import { MongoCartRepository } from './infrastructure/repositories/MongoCartRepository';
-import { RabbitMQEventPublisher } from './infrastructure/events/RabbitMQEventPublisher';
-import { RedisCacheService } from './infrastructure/cache/RedisCacheService';
-import { RedisLockService } from './infrastructure/locks/RedisLockService';
-import { JWTTokenService } from './infrastructure/services/JWTTokenService';
+import { MongoProductRepository } from './infrastructure/repositories/MongoProductRepository';
 import { BcryptPasswordService } from './infrastructure/services/BcryptPasswordService';
+import { JWTTokenService } from './infrastructure/services/JWTTokenService';
 import { SendGridEmailService } from './infrastructure/services/SendGridEmailService';
-import { EmailService } from './domain/services/EmailService';
-import { connectToMongoDB, closeMongoDBConnection } from './infrastructure/database/mongodb';
-import { seedDatabase } from './infrastructure/database/seed';
 // Import models to ensure they are registered with Mongoose
 import './infrastructure/models/ProductModel';
 import './infrastructure/models/CartModel';
@@ -67,7 +66,7 @@ async function main() {
   // Connect to MongoDB
   try {
     await connectToMongoDB();
-    
+
     // Seed database if needed (only in development)
     if (process.env.NODE_ENV !== 'production') {
       await seedDatabase();
@@ -82,7 +81,7 @@ async function main() {
   const customerRepository = new MongoCustomerRepository();
   const orderRepository = new MongoOrderRepository();
   const cartRepository = new MongoCartRepository();
-  
+
   const eventPublisher = new RabbitMQEventPublisher(process.env.RABBITMQ_URL || 'amqp://localhost');
   try {
     await eventPublisher.connect();
@@ -92,15 +91,17 @@ async function main() {
 
   // Only use Redis if REDIS_URL is explicitly configured
   // In production, don't default to localhost
-  const redisUrl = process.env.REDIS_URL || (process.env.NODE_ENV === 'development' ? 'redis://localhost:6379' : undefined);
-  
+  const redisUrl =
+    process.env.REDIS_URL ||
+    (process.env.NODE_ENV === 'development' ? 'redis://localhost:6379' : undefined);
+
   // Log Redis configuration
   console.log('🔍 Redis Configuration:');
   console.log(`   REDIS_URL env var: ${process.env.REDIS_URL || 'NOT SET'}`);
   console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
   console.log(`   Final redisUrl: ${redisUrl || 'undefined (will use in-memory fallback)'}`);
   console.log('');
-  
+
   const cacheService = new RedisCacheService(redisUrl);
   try {
     await cacheService.connect();
@@ -119,15 +120,15 @@ async function main() {
   const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
   const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
   const tokenService = new JWTTokenService(jwtSecret, jwtExpiresIn);
-  
+
   const passwordService = new BcryptPasswordService(10);
-  
+
   // Initialize SendGrid email service if both API key and from email are configured
   const sendGridApiKey = process.env.SENDGRID_API_KEY;
   const sendGridFromEmail = process.env.SENDGRID_FROM_EMAIL;
-  
+
   let emailService: EmailService | null = null;
-  
+
   if (sendGridApiKey && sendGridFromEmail) {
     try {
       emailService = new SendGridEmailService(sendGridApiKey, sendGridFromEmail);
@@ -152,10 +153,18 @@ async function main() {
 
   // Create a mock email service for fallback
   const mockEmailService: EmailService = {
-    sendVerificationEmail: async () => { console.warn('Email service not configured'); },
-    sendPasswordResetEmail: async () => { console.warn('Email service not configured'); },
-    sendPasswordResetConfirmation: async () => { console.warn('Email service not configured'); },
-    sendOrderConfirmationEmail: async () => { console.warn('Email service not configured'); }
+    sendVerificationEmail: async () => {
+      console.warn('Email service not configured');
+    },
+    sendPasswordResetEmail: async () => {
+      console.warn('Email service not configured');
+    },
+    sendPasswordResetConfirmation: async () => {
+      console.warn('Email service not configured');
+    },
+    sendOrderConfirmationEmail: async () => {
+      console.warn('Email service not configured');
+    },
   };
 
   // Initialize use cases
@@ -185,32 +194,26 @@ async function main() {
     eventPublisher
   );
 
-  const getProductsUseCase = new GetProductsUseCase(
-    productRepository,
-    cacheService
-  );
+  const getProductsUseCase = new GetProductsUseCase(productRepository, cacheService);
 
-  const getProductByIdUseCase = new GetProductByIdUseCase(
-    productRepository,
-    cacheService
-  );
+  const getProductByIdUseCase = new GetProductByIdUseCase(productRepository, cacheService);
 
   // Get frontend URL - required in production
   console.log('🔍 Checking FRONTEND_URL configuration...');
   console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
   console.log(`   FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
-  
-  const frontendUrl = process.env.FRONTEND_URL || (
-    process.env.NODE_ENV === 'production' 
+
+  const frontendUrl =
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production'
       ? (() => {
           console.error('❌ FRONTEND_URL is not set in production!');
           console.error('   Please set FRONTEND_URL in Render environment variables.');
           console.error('   Example: https://noktor-store.netlify.app');
           throw new Error('FRONTEND_URL is required in production');
         })()
-      : 'http://localhost:5173'
-  );
-  
+      : 'http://localhost:5173');
+
   console.log(`✅ Frontend URL configured: ${frontendUrl}`);
   if (frontendUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
     console.error('⚠️  WARNING: Using localhost in production! This is incorrect.');
@@ -261,16 +264,16 @@ async function main() {
       verifyEmailUseCase,
       requestPasswordResetUseCase,
       resetPasswordUseCase,
-      getCurrentUserUseCase
+      getCurrentUserUseCase,
     },
     {
       cartRepository,
       orderRepository,
-      customerRepository
+      customerRepository,
     },
     {
       cacheService,
-      tokenService
+      tokenService,
     }
   );
 

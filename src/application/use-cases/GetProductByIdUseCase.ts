@@ -1,6 +1,6 @@
-import { Product } from '../../domain/Product';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
-import { CacheService } from '../../domain/services/CacheService';
+import type { Product } from '../../domain/Product';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
+import type { CacheService } from '../../domain/services/CacheService';
 
 export class GetProductByIdUseCase {
   constructor(
@@ -31,4 +31,3 @@ export class GetProductByIdUseCase {
     return product;
   }
 }
-

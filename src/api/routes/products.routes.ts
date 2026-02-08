@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ProductsController } from '../controllers/ProductsController';
+import type { ProductsController } from '../controllers/ProductsController';
 
 export function createProductsRouter(controller: ProductsController): Router {
   const router = Router();
@@ -83,4 +83,3 @@ export function createProductsRouter(controller: ProductsController): Router {
 
   return router;
 }
-

@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { CacheService } from '../../domain/services/CacheService';
+import type { CacheService } from '../../domain/services/CacheService';
 
 export class RedisCacheService implements CacheService {
   private redis: Redis | null = null;
@@ -48,7 +48,7 @@ export class RedisCacheService implements CacheService {
         // Prevent connection attempts if Redis is not available
         connectTimeout: 2000,
         // Disable IPv6 to avoid ::1 connection attempts
-        family: 4
+        family: 4,
       });
 
       // Register error handler IMMEDIATELY to catch all errors
@@ -58,7 +58,7 @@ export class RedisCacheService implements CacheService {
           this.connectionFailed = true;
         }
       });
-      
+
       // Handle connection errors specifically
       this.redis.on('close', () => {
         console.warn('⚠️  [Cache Service] Redis connection closed');
@@ -76,9 +76,9 @@ export class RedisCacheService implements CacheService {
       console.log('⏳ [Cache Service] Connecting to Redis...');
       await Promise.race([
         this.redis.connect(),
-        new Promise<never>((_, reject) => 
+        new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Connection timeout')), 2000)
-        )
+        ),
       ]);
 
       // Test connection
@@ -139,7 +139,7 @@ export class RedisCacheService implements CacheService {
         }
       } else {
         // Fallback to in-memory cache
-        const expiry = ttlSeconds ? Date.now() + (ttlSeconds * 1000) : Number.MAX_SAFE_INTEGER;
+        const expiry = ttlSeconds ? Date.now() + ttlSeconds * 1000 : Number.MAX_SAFE_INTEGER;
         this.fallbackCache.set(key, { value, expiry });
 
         // Cleanup expired entries periodically
@@ -190,4 +190,3 @@ export class RedisCacheService implements CacheService {
     }
   }
 }
-

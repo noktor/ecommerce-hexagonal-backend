@@ -3,4 +3,3 @@ export interface LockService {
   releaseLock(key: string): Promise<void>;
   extendLock(key: string, ttlSeconds: number): Promise<boolean>;
 }
-

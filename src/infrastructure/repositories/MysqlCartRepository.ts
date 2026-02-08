@@ -1,19 +1,19 @@
-import { Cart } from '../../domain/Cart';
-import { CartRepository } from '../../domain/repositories/CartRepository';
+import type { Cart } from '../../domain/Cart';
+import type { CartRepository } from '../../domain/repositories/CartRepository';
 
 // Mock implementation with simulated latency to emulate real database
 export class MysqlCartRepository implements CartRepository {
   private carts: Map<string, Cart> = new Map();
-  
+
   // Simulate database latency (50-150ms typical for MySQL queries)
   private async simulateLatency(min: number = 50, max: number = 150): Promise<void> {
     const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   async findByCustomerId(customerId: string): Promise<Cart | null> {
     await this.simulateLatency();
-    return Array.from(this.carts.values()).find(c => c.customerId === customerId) || null;
+    return Array.from(this.carts.values()).find((c) => c.customerId === customerId) || null;
   }
 
   async save(cart: Cart): Promise<void> {
@@ -29,4 +29,3 @@ export class MysqlCartRepository implements CartRepository {
     }
   }
 }
-

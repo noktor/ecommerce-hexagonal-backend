@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { TokenService, TokenPayload } from '../../domain/services/TokenService';
+import type { TokenPayload, TokenService } from '../../domain/services/TokenService';
 
 export class JWTTokenService implements TokenService {
   private readonly secret: string;
@@ -23,4 +23,3 @@ export class JWTTokenService implements TokenService {
     }
   }
 }
-

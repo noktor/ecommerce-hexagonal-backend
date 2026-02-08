@@ -1,14 +1,14 @@
 // Load environment variables
 import 'dotenv/config';
 
-import { ProductModel } from '../models/ProductModel';
 import { CustomerModel, CustomerStatus } from '../models/CustomerModel';
+import { ProductModel } from '../models/ProductModel';
 
 export async function seedDatabase(): Promise<void> {
   try {
     // Seed Products
     const existingProducts = await ProductModel.countDocuments();
-    
+
     if (existingProducts === 0) {
       const mockProducts = [
         {
@@ -18,7 +18,7 @@ export async function seedDatabase(): Promise<void> {
           price: 999.99,
           stock: 10,
           category: 'Electronics',
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '2',
@@ -27,7 +27,7 @@ export async function seedDatabase(): Promise<void> {
           price: 29.99,
           stock: 50,
           category: 'Electronics',
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '3',
@@ -36,7 +36,7 @@ export async function seedDatabase(): Promise<void> {
           price: 79.99,
           stock: 30,
           category: 'Electronics',
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '4',
@@ -45,7 +45,7 @@ export async function seedDatabase(): Promise<void> {
           price: 19.99,
           stock: 100,
           category: 'Clothing',
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '5',
@@ -54,7 +54,7 @@ export async function seedDatabase(): Promise<void> {
           price: 49.99,
           stock: 75,
           category: 'Clothing',
-          createdAt: new Date()
+          createdAt: new Date(),
         },
       ];
 
@@ -66,7 +66,7 @@ export async function seedDatabase(): Promise<void> {
 
     // Seed Customers
     const existingCustomers = await CustomerModel.countDocuments();
-    
+
     if (existingCustomers === 0) {
       const mockCustomers = [
         {
@@ -74,21 +74,21 @@ export async function seedDatabase(): Promise<void> {
           email: 'john@example.com',
           name: 'John Doe',
           status: CustomerStatus.ACTIVE,
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '2',
           email: 'jane@example.com',
           name: 'Jane Smith',
           status: CustomerStatus.ACTIVE,
-          createdAt: new Date()
+          createdAt: new Date(),
         },
         {
           id: '3',
           email: 'bob@example.com',
           name: 'Bob Johnson',
           status: CustomerStatus.INACTIVE,
-          createdAt: new Date()
+          createdAt: new Date(),
         },
       ];
 

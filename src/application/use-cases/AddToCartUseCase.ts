@@ -1,12 +1,12 @@
 import { Cart } from '../../domain/Cart';
-import { Product } from '../../domain/Product';
 import { Customer } from '../../domain/Customer';
-import { CartRepository } from '../../domain/repositories/CartRepository';
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
-import { CacheService } from '../../domain/services/CacheService';
-import { LockService } from '../../domain/services/LockService';
-import { EventPublisher } from '../../domain/events/EventPublisher';
+import type { EventPublisher } from '../../domain/events/EventPublisher';
+import { Product } from '../../domain/Product';
+import type { CartRepository } from '../../domain/repositories/CartRepository';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
+import type { CacheService } from '../../domain/services/CacheService';
+import type { LockService } from '../../domain/services/LockService';
 
 export interface AddToCartRequest {
   customerId: string;
@@ -37,7 +37,7 @@ export class AddToCartUseCase {
   private async acquireLockWithRetry(lockKey: string, ttlSeconds: number): Promise<boolean> {
     for (let attempt = 0; attempt < this.MAX_RETRY_ATTEMPTS; attempt++) {
       const lockAcquired = await this.lockService.acquireLock(lockKey, ttlSeconds);
-      
+
       if (lockAcquired) {
         return true;
       }
@@ -45,11 +45,8 @@ export class AddToCartUseCase {
       // If not the last attempt, wait before retrying
       if (attempt < this.MAX_RETRY_ATTEMPTS - 1) {
         // Exponential backoff: 50ms, 100ms, 200ms, 400ms, 500ms (capped)
-        const delay = Math.min(
-          this.INITIAL_RETRY_DELAY * Math.pow(2, attempt),
-          this.MAX_RETRY_DELAY
-        );
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = Math.min(this.INITIAL_RETRY_DELAY * 2 ** attempt, this.MAX_RETRY_DELAY);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -59,9 +56,11 @@ export class AddToCartUseCase {
   async execute(request: AddToCartRequest): Promise<Cart> {
     const lockKey = `cart:${request.customerId}`;
     const lockAcquired = await this.acquireLockWithRetry(lockKey, this.CART_LOCK_TTL);
-    
+
     if (!lockAcquired) {
-      throw new Error('Cart is currently being modified by another request. Please try again in a moment.');
+      throw new Error(
+        'Cart is currently being modified by another request. Please try again in a moment.'
+      );
     }
 
     try {
@@ -82,7 +81,7 @@ export class AddToCartUseCase {
 
       // Get or create cart
       let cart = await this.cartRepository.findByCustomerId(request.customerId);
-      
+
       // Check if cart expired
       if (cart && cart.isExpired()) {
         // Clear expired cart
@@ -91,18 +90,12 @@ export class AddToCartUseCase {
         await this.cacheService.delete(cacheKey);
         cart = null;
       }
-      
+
       if (!cart) {
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + this.CART_EXPIRY_MINUTES);
-        
-        cart = new Cart(
-          this.generateCartId(),
-          request.customerId,
-          [],
-          new Date(),
-          expiresAt
-        );
+
+        cart = new Cart(this.generateCartId(), request.customerId, [], new Date(), expiresAt);
       }
 
       // Add item to cart
@@ -121,7 +114,7 @@ export class AddToCartUseCase {
       // 2. Invalidating cache on every cart modification would reduce cache effectiveness
       // 3. Product cache has a short TTL (5 minutes) which provides reasonable freshness
       // 4. Stock validation happens at order creation time, ensuring data consistency
-      // 
+      //
       // If you need real-time available stock (accounting for items in carts), consider:
       // - Calculating available stock dynamically: databaseStock - sum(quantities in active carts)
       // - Using a shorter TTL for product cache (e.g., 30 seconds)
@@ -134,7 +127,7 @@ export class AddToCartUseCase {
         productId: request.productId,
         quantity: request.quantity,
         action: 'add',
-        expiresAt: cart.expiresAt?.toISOString()
+        expiresAt: cart.expiresAt?.toISOString(),
       });
 
       return cart;
@@ -147,4 +140,3 @@ export class AddToCartUseCase {
     return `CART-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
-

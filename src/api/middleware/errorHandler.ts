@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 export class AppError extends Error {
   constructor(
@@ -22,8 +22,8 @@ export const errorHandler = (
       success: false,
       error: {
         message: err.message,
-        statusCode: err.statusCode
-      }
+        statusCode: err.statusCode,
+      },
     });
     return;
   }
@@ -34,8 +34,7 @@ export const errorHandler = (
     success: false,
     error: {
       message: 'Internal server error',
-      statusCode: 500
-    }
+      statusCode: 500,
+    },
   });
 };
-

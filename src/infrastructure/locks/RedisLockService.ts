@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { LockService } from '../../domain/services/LockService';
+import type { LockService } from '../../domain/services/LockService';
 
 export class RedisLockService implements LockService {
   private redis: Redis | null = null;
@@ -46,7 +46,7 @@ export class RedisLockService implements LockService {
         // Prevent connection attempts if Redis is not available
         connectTimeout: 2000,
         // Disable IPv6 to avoid ::1 connection attempts
-        family: 4
+        family: 4,
       });
 
       // Register error handler IMMEDIATELY to catch all errors
@@ -56,7 +56,7 @@ export class RedisLockService implements LockService {
           this.connectionFailed = true;
         }
       });
-      
+
       // Handle connection errors specifically
       this.redis.on('close', () => {
         console.warn('⚠️  [Lock Service] Redis connection closed');
@@ -73,9 +73,9 @@ export class RedisLockService implements LockService {
       console.log('⏳ [Lock Service] Connecting to Redis...');
       await Promise.race([
         this.redis.connect(),
-        new Promise<never>((_, reject) => 
+        new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Connection timeout')), 2000)
-        )
+        ),
       ]);
 
       console.log('🏓 [Lock Service] Testing Redis connection with PING...');
@@ -103,7 +103,7 @@ export class RedisLockService implements LockService {
    */
   async acquireLock(key: string, ttlSeconds: number): Promise<boolean> {
     const lockKey = `lock:${key}`;
-    
+
     try {
       if (this.redis && !this.connectionFailed) {
         // SET key value NX EX ttl - atomic operation
@@ -116,7 +116,7 @@ export class RedisLockService implements LockService {
           return false; // Lock already held
         }
         this.fallbackLocks.set(lockKey, {
-          expiry: Date.now() + (ttlSeconds * 1000)
+          expiry: Date.now() + ttlSeconds * 1000,
         });
         this.cleanupExpiredLocks();
         return true;
@@ -132,7 +132,7 @@ export class RedisLockService implements LockService {
    */
   async releaseLock(key: string): Promise<void> {
     const lockKey = `lock:${key}`;
-    
+
     try {
       if (this.redis && !this.connectionFailed) {
         await this.redis.del(lockKey);
@@ -149,7 +149,7 @@ export class RedisLockService implements LockService {
    */
   async extendLock(key: string, ttlSeconds: number): Promise<boolean> {
     const lockKey = `lock:${key}`;
-    
+
     try {
       if (this.redis && !this.connectionFailed) {
         const result = await this.redis.expire(lockKey, ttlSeconds);
@@ -157,7 +157,7 @@ export class RedisLockService implements LockService {
       } else {
         const existing = this.fallbackLocks.get(lockKey);
         if (existing && existing.expiry > Date.now()) {
-          existing.expiry = Date.now() + (ttlSeconds * 1000);
+          existing.expiry = Date.now() + ttlSeconds * 1000;
           return true;
         }
         return false;
@@ -183,4 +183,3 @@ export class RedisLockService implements LockService {
     }
   }
 }
-

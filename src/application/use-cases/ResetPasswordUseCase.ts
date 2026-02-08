@@ -1,6 +1,6 @@
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { PasswordService } from '../../domain/services/PasswordService';
-import { EmailService } from '../../domain/services/EmailService';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { EmailService } from '../../domain/services/EmailService';
+import type { PasswordService } from '../../domain/services/PasswordService';
 
 export interface ResetPasswordInput {
   token: string;
@@ -29,21 +29,21 @@ export class ResetPasswordUseCase {
   async execute(input: ResetPasswordInput): Promise<ResetPasswordOutput> {
     // Find customer by reset token
     const customer = await this.customerRepository.findByResetToken(input.token);
-    
+
     if (!customer) {
       throw new Error('Invalid or expired reset token');
     }
 
     // Validate that new password is different from current password and password history
     // This follows NIST SP 800-63B and OWASP password security best practices
-    
+
     // Check current password (prevent immediate reuse)
     if (customer.passwordHash) {
       const isSameAsCurrent = await this.passwordService.verifyPassword(
         input.newPassword,
         customer.passwordHash
       );
-      
+
       if (isSameAsCurrent) {
         throw new Error('New password must be different from your current password');
       }
@@ -57,11 +57,11 @@ export class ResetPasswordUseCase {
           input.newPassword,
           historyEntry.hash
         );
-        
+
         if (isSameAsHistory) {
           throw new Error(
             `New password must be different from your recent passwords. ` +
-            `Please choose a password you have not used in the last ${PASSWORD_HISTORY_SIZE} password changes.`
+              `Please choose a password you have not used in the last ${PASSWORD_HISTORY_SIZE} password changes.`
           );
         }
       }
@@ -80,15 +80,11 @@ export class ResetPasswordUseCase {
     await this.customerRepository.save(updatedCustomer);
 
     // Send confirmation email
-    await this.emailService.sendPasswordResetConfirmation(
-      customer.email,
-      customer.name
-    );
+    await this.emailService.sendPasswordResetConfirmation(customer.email, customer.name);
 
     return {
       success: true,
-      message: 'Password reset successfully'
+      message: 'Password reset successfully',
     };
   }
 }
-

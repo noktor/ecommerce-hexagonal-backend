@@ -1,4 +1,4 @@
-import { Product } from '../Product';
+import type { Product } from '../Product';
 
 export interface ProductRepository {
   findById(id: string): Promise<Product | null>;
@@ -6,4 +6,3 @@ export interface ProductRepository {
   findByCategory(category: string): Promise<Product[]>;
   updateStock(productId: string, quantity: number): Promise<void>;
 }
-

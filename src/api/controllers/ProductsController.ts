@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { GetProductsUseCase } from '../../application/use-cases/GetProductsUseCase';
-import { GetProductByIdUseCase } from '../../application/use-cases/GetProductByIdUseCase';
+import type { NextFunction, Request, Response } from 'express';
+import type { GetProductByIdUseCase } from '../../application/use-cases/GetProductByIdUseCase';
+import type { GetProductsUseCase } from '../../application/use-cases/GetProductsUseCase';
 import { AppError } from '../middleware/errorHandler';
 
 export class ProductsController {
@@ -16,12 +16,12 @@ export class ProductsController {
 
       const products = await this.getProductsUseCase.execute({
         category,
-        useCache
+        useCache,
       });
 
       res.json({
         success: true,
-        data: products
+        data: products,
       });
     } catch (error) {
       next(error);
@@ -41,11 +41,10 @@ export class ProductsController {
 
       res.json({
         success: true,
-        data: product
+        data: product,
       });
     } catch (error) {
       next(error);
     }
   }
 }
-

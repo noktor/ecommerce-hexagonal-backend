@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { ProductsController } from '../controllers/ProductsController';
-import { CartController } from '../controllers/CartController';
-import { OrdersController } from '../controllers/OrdersController';
-import { AuthController } from '../controllers/AuthController';
-import { createProductsRouter } from './products.routes';
+import type { TokenService } from '../../domain/services/TokenService';
+import type { AuthController } from '../controllers/AuthController';
+import type { CartController } from '../controllers/CartController';
+import type { OrdersController } from '../controllers/OrdersController';
+import type { ProductsController } from '../controllers/ProductsController';
+import { createAuthRouter } from './auth.routes';
 import { createCartRouter } from './cart.routes';
 import { createOrdersRouter } from './orders.routes';
-import { createAuthRouter } from './auth.routes';
-import { TokenService } from '../../domain/services/TokenService';
+import { createProductsRouter } from './products.routes';
 
 export function createApiRouter(
   productsController: ProductsController,
@@ -25,4 +25,3 @@ export function createApiRouter(
 
   return router;
 }
-

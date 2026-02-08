@@ -1,302 +1,253 @@
 {
-	"info": {
-		"_postman_id": "ecommerce-api-collection",
-		"name": "E-commerce API",
-		"description": "Col·lecció d'endpoints per a l'API REST de l'e-commerce amb arquitectura hexagonal",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Health Check",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/health",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"health"
-					]
-				},
-				"description": "Verifica que l'API està funcionant"
-			},
-			"response": []
-		},
-		{
-			"name": "Products",
-			"item": [
-				{
-					"name": "Get All Products",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/products?category=&useCache=true",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"products"
-							],
-							"query": [
-								{
-									"key": "category",
-									"value": "",
-									"description": "Filtrar per categoria (opcional): Electronics, Clothing, etc."
-								},
-								{
-									"key": "useCache",
-									"value": "true",
-									"description": "Usar cache (opcional): true o false"
-								}
-							]
-						},
-						"description": "Obté tots els productes. Opcionalment pots filtrar per categoria."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Products by Category",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/products?category=Electronics&useCache=true",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"products"
-							],
-							"query": [
-								{
-									"key": "category",
-									"value": "Electronics",
-									"description": "Categoria: Electronics, Clothing, etc."
-								},
-								{
-									"key": "useCache",
-									"value": "true"
-								}
-							]
-						},
-						"description": "Obté productes filtrats per categoria"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Product by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/products/:id?useCache=true",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"products",
-								":id"
-							],
-							"query": [
-								{
-									"key": "useCache",
-									"value": "true"
-								}
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "1",
-									"description": "ID del producte"
-								}
-							]
-						},
-						"description": "Obté un producte específic per ID"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints per gestionar productes"
-		},
-		{
-			"name": "Cart",
-			"item": [
-				{
-					"name": "Get Cart by Customer ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/cart/:customerId",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"cart",
-								":customerId"
-							],
-							"variable": [
-								{
-									"key": "customerId",
-									"value": "1",
-									"description": "ID del client"
-								}
-							]
-						},
-						"description": "Obté el carret d'un client específic"
-					},
-					"response": []
-				},
-				{
-					"name": "Add Item to Cart",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"customerId\": \"1\",\n  \"productId\": \"1\",\n  \"quantity\": 2\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/cart",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"cart"
-							]
-						},
-						"description": "Afegeix un producte al carret d'un client"
-					},
-					"response": []
-				},
-				{
-					"name": "Remove Item from Cart",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"customerId\": \"1\",\n  \"productId\": \"1\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/cart/item",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"cart",
-								"item"
-							]
-						},
-						"description": "Elimina un producte del carret d'un client"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints per gestionar el carret de compra"
-		},
-		{
-			"name": "Orders",
-			"item": [
-				{
-					"name": "Create Order",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"customerId\": \"1\",\n  \"items\": [\n    {\n      \"productId\": \"1\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"2\",\n      \"quantity\": 2\n    }\n  ],\n  \"shippingAddress\": \"123 Main St, Barcelona, Spain\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/orders",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"orders"
-							]
-						},
-						"description": "Crea una nova comanda amb els productes del carret"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Order by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/orders/:id",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"orders",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "ORD-1234567890-abc123",
-									"description": "ID de la comanda (generat quan es crea)"
-								}
-							]
-						},
-						"description": "Obté una comanda específica per ID"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints per gestionar comandes"
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:3000",
-			"type": "string"
-		}
-	]
+  "info": {
+    "_postman_id": "ecommerce-api-collection",
+    "name": "E-commerce API",
+    "description": "Col·lecció d'endpoints per a l'API REST de l'e-commerce amb arquitectura hexagonal",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Verifica que l'API està funcionant"
+      },
+      "response": []
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products?category=&useCache=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Filtrar per categoria (opcional): Electronics, Clothing, etc."
+                },
+                {
+                  "key": "useCache",
+                  "value": "true",
+                  "description": "Usar cache (opcional): true o false"
+                }
+              ]
+            },
+            "description": "Obté tots els productes. Opcionalment pots filtrar per categoria."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products?category=Electronics&useCache=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Electronics",
+                  "description": "Categoria: Electronics, Clothing, etc."
+                },
+                {
+                  "key": "useCache",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Obté productes filtrats per categoria"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/:id?useCache=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", ":id"],
+              "query": [
+                {
+                  "key": "useCache",
+                  "value": "true"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ID del producte"
+                }
+              ]
+            },
+            "description": "Obté un producte específic per ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints per gestionar productes"
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart by Customer ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/cart/:customerId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cart", ":customerId"],
+              "variable": [
+                {
+                  "key": "customerId",
+                  "value": "1",
+                  "description": "ID del client"
+                }
+              ]
+            },
+            "description": "Obté el carret d'un client específic"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"1\",\n  \"productId\": \"1\",\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cart"]
+            },
+            "description": "Afegeix un producte al carret d'un client"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"1\",\n  \"productId\": \"1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/item",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cart", "item"]
+            },
+            "description": "Elimina un producte del carret d'un client"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints per gestionar el carret de compra"
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"1\",\n  \"items\": [\n    {\n      \"productId\": \"1\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"2\",\n      \"quantity\": 2\n    }\n  ],\n  \"shippingAddress\": \"123 Main St, Barcelona, Spain\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Crea una nova comanda amb els productes del carret"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "ORD-1234567890-abc123",
+                  "description": "ID de la comanda (generat quan es crea)"
+                }
+              ]
+            },
+            "description": "Obté una comanda específica per ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints per gestionar comandes"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
 }
-

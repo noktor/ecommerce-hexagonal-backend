@@ -1,5 +1,5 @@
 import * as amqp from 'amqplib';
-import { EventPublisher } from '../../domain/events/EventPublisher';
+import type { EventPublisher } from '../../domain/events/EventPublisher';
 
 type Connection = amqp.Connection;
 type Channel = amqp.Channel;
@@ -17,24 +17,24 @@ export class RabbitMQEventPublisher implements EventPublisher {
       // Try to connect with timeout
       const conn = await Promise.race([
         amqp.connect(this.rabbitmqUrl),
-        new Promise<never>((_, reject) => 
+        new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Connection timeout')), 2000)
-        )
+        ),
       ]);
-      
+
       this.connection = conn as unknown as Connection;
       if (!this.connection) {
         throw new Error('Failed to establish connection');
       }
-      this.channel = await (this.connection as any).createChannel() as Channel;
-      
+      this.channel = (await (this.connection as any).createChannel()) as Channel;
+
       if (!this.channel) {
         throw new Error('Failed to create channel');
       }
-      
+
       // Declare dead letter exchange for failed messages
       await this.channel.assertExchange('dlx', 'direct', { durable: true });
-      
+
       console.log('Connected to RabbitMQ');
     } catch (error) {
       console.warn('RabbitMQ not available, using in-memory fallback:', (error as Error).message);
@@ -68,7 +68,7 @@ export class RabbitMQEventPublisher implements EventPublisher {
       const message = JSON.stringify({
         event: eventName,
         payload,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       this.channel.publish(exchange, eventName, Buffer.from(message), {
@@ -76,8 +76,8 @@ export class RabbitMQEventPublisher implements EventPublisher {
         // Add retry headers
         headers: {
           'x-retry-count': 0,
-          'x-max-retries': this.maxRetries
-        }
+          'x-max-retries': this.maxRetries,
+        },
       });
 
       console.log(`Event published: ${eventName}`);
@@ -88,22 +88,24 @@ export class RabbitMQEventPublisher implements EventPublisher {
   }
 
   async publishWithRetry(
-    eventName: string, 
-    payload: Record<string, unknown>, 
+    eventName: string,
+    payload: Record<string, unknown>,
     maxRetries: number = this.maxRetries
   ): Promise<void> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         await this.publish(eventName, payload);
         return; // Success
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt < maxRetries) {
-          const delay = this.retryDelay * Math.pow(2, attempt); // Exponential backoff
-          console.log(`Retry attempt ${attempt + 1}/${maxRetries} for event ${eventName} after ${delay}ms`);
+          const delay = this.retryDelay * 2 ** attempt; // Exponential backoff
+          console.log(
+            `Retry attempt ${attempt + 1}/${maxRetries} for event ${eventName} after ${delay}ms`
+          );
           await this.sleep(delay);
         }
       }
@@ -112,12 +114,14 @@ export class RabbitMQEventPublisher implements EventPublisher {
     // All retries failed - send to dead letter queue
     console.error(`Failed to publish event ${eventName} after ${maxRetries} retries`);
     await this.sendToDeadLetterQueue(eventName, payload, lastError);
-    throw lastError || new Error(`Failed to publish event ${eventName} after ${maxRetries} retries`);
+    throw (
+      lastError || new Error(`Failed to publish event ${eventName} after ${maxRetries} retries`)
+    );
   }
 
   private async sendToDeadLetterQueue(
-    eventName: string, 
-    payload: Record<string, unknown>, 
+    eventName: string,
+    payload: Record<string, unknown>,
     error: Error | null
   ): Promise<void> {
     if (!this.channel) return;
@@ -127,7 +131,7 @@ export class RabbitMQEventPublisher implements EventPublisher {
         event: eventName,
         payload,
         error: error?.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       await this.channel.assertQueue('dlq', { durable: true });
@@ -139,7 +143,7 @@ export class RabbitMQEventPublisher implements EventPublisher {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async close(): Promise<void> {
@@ -157,4 +161,3 @@ export class RabbitMQEventPublisher implements EventPublisher {
     }
   }
 }
-

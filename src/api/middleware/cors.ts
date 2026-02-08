@@ -16,27 +16,27 @@ function normalizeUrl(url: string): string {
 function getAllowedOrigins(): string[] {
   const frontendUrl = process.env.FRONTEND_URL;
   const nodeEnv = process.env.NODE_ENV || 'development';
-  
+
   // Default origins for development
   const defaultOrigins = ['http://localhost:5173', 'http://localhost:3000'];
-  
+
   if (!frontendUrl) {
     console.log('🌐 CORS: Using default development origins:', defaultOrigins);
     return defaultOrigins;
   }
-  
+
   // Support multiple origins (comma-separated)
   const origins = frontendUrl.includes(',')
     ? frontendUrl.split(',').map(normalizeUrl)
     : [normalizeUrl(frontendUrl)];
-  
+
   // In development, also allow localhost even if FRONTEND_URL is set
   if (nodeEnv === 'development') {
     const allOrigins = [...new Set([...defaultOrigins, ...origins])];
     console.log('🌐 CORS: Allowed origins (development):', allOrigins);
     return allOrigins;
   }
-  
+
   console.log('🌐 CORS: Allowed origins (production):', origins);
   return origins;
 }
@@ -45,21 +45,24 @@ function getAllowedOrigins(): string[] {
  * CORS origin validation function
  * Checks if the request origin is in the allowed list
  */
-function originValidator(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void): void {
+function originValidator(
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+): void {
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) {
     return callback(null, true);
   }
-  
+
   const allowedOrigins = getAllowedOrigins();
   const normalizedOrigin = normalizeUrl(origin);
-  
+
   // Check if origin matches any allowed origin (exact match)
-  const isAllowed = allowedOrigins.some(allowed => {
+  const isAllowed = allowedOrigins.some((allowed) => {
     const normalizedAllowed = normalizeUrl(allowed);
     return normalizedOrigin === normalizedAllowed;
   });
-  
+
   if (isAllowed) {
     console.log(`✅ CORS: Allowing origin: ${normalizedOrigin}`);
     callback(null, true);
@@ -76,6 +79,5 @@ export const corsMiddleware = cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
 });
-

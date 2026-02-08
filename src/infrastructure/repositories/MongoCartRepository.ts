@@ -1,16 +1,10 @@
-import { Cart, CartItem } from '../../domain/Cart';
-import { CartRepository } from '../../domain/repositories/CartRepository';
-import { CartModel, ICart } from '../models/CartModel';
+import { Cart, type CartItem } from '../../domain/Cart';
+import type { CartRepository } from '../../domain/repositories/CartRepository';
+import { CartModel, type ICart } from '../models/CartModel';
 
 export class MongoCartRepository implements CartRepository {
   private documentToCart(doc: ICart): Cart {
-    return new Cart(
-      doc.id,
-      doc.customerId,
-      doc.items as CartItem[],
-      doc.updatedAt,
-      doc.expiresAt
-    );
+    return new Cart(doc.id, doc.customerId, doc.items as CartItem[], doc.updatedAt, doc.expiresAt);
   }
 
   async findByCustomerId(customerId: string): Promise<Cart | null> {
@@ -26,7 +20,7 @@ export class MongoCartRepository implements CartRepository {
         customerId: cart.customerId,
         items: cart.items,
         updatedAt: cart.updatedAt,
-        expiresAt: cart.expiresAt
+        expiresAt: cart.expiresAt,
       },
       { upsert: true, new: true }
     ).exec();

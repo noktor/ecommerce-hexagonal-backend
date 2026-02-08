@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { OrdersController } from '../controllers/OrdersController';
+import type { TokenService } from '../../domain/services/TokenService';
+import type { OrdersController } from '../controllers/OrdersController';
 import { createOptionalAuthMiddleware } from '../middleware/auth';
-import { TokenService } from '../../domain/services/TokenService';
 
 export function createOrdersRouter(
   controller: OrdersController,
@@ -92,4 +92,3 @@ export function createOrdersRouter(
 
   return router;
 }
-

@@ -1,5 +1,5 @@
-import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
+import swaggerJsdoc from 'swagger-jsdoc';
 
 // Get the correct path to routes directory
 // In development (ts-node): __dirname = src/api/config
@@ -14,18 +14,18 @@ const options: swaggerJsdoc.Options = {
       version: '1.0.0',
       description: 'E-commerce backend API with hexagonal architecture',
       contact: {
-        name: 'API Support'
-      }
+        name: 'API Support',
+      },
     },
     servers: [
       {
         url: 'http://localhost:3000/api',
-        description: 'Development server'
+        description: 'Development server',
       },
       {
         url: 'https://ecommerce-backend-qvo9.onrender.com/api',
-        description: 'Production server'
-      }
+        description: 'Production server',
+      },
     ],
     components: {
       securitySchemes: {
@@ -33,8 +33,8 @@ const options: swaggerJsdoc.Options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Enter JWT token'
-        }
+          description: 'Enter JWT token',
+        },
       },
       schemas: {
         Product: {
@@ -49,16 +49,16 @@ const options: swaggerJsdoc.Options = {
             category: { type: 'string', example: 'Electronics' },
             createdAt: { type: 'string', format: 'date-time' },
             longDescription: { type: 'string', nullable: true },
-            imageUrl: { type: 'string', nullable: true }
-          }
+            imageUrl: { type: 'string', nullable: true },
+          },
         },
         CartItem: {
           type: 'object',
           required: ['productId', 'quantity'],
           properties: {
             productId: { type: 'string', example: 'PROD-123' },
-            quantity: { type: 'number', example: 2 }
-          }
+            quantity: { type: 'number', example: 2 },
+          },
         },
         Cart: {
           type: 'object',
@@ -67,10 +67,10 @@ const options: swaggerJsdoc.Options = {
             customerId: { type: 'string' },
             items: {
               type: 'array',
-              items: { $ref: '#/components/schemas/CartItem' }
+              items: { $ref: '#/components/schemas/CartItem' },
             },
-            updatedAt: { type: 'string', format: 'date-time' }
-          }
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
         },
         OrderItem: {
           type: 'object',
@@ -79,8 +79,8 @@ const options: swaggerJsdoc.Options = {
             productName: { type: 'string' },
             quantity: { type: 'number' },
             price: { type: 'number' },
-            subtotal: { type: 'number' }
-          }
+            subtotal: { type: 'number' },
+          },
         },
         Order: {
           type: 'object',
@@ -89,13 +89,13 @@ const options: swaggerJsdoc.Options = {
             customerId: { type: 'string' },
             items: {
               type: 'array',
-              items: { $ref: '#/components/schemas/OrderItem' }
+              items: { $ref: '#/components/schemas/OrderItem' },
             },
             total: { type: 'number' },
             status: { type: 'string', example: 'PENDING' },
             createdAt: { type: 'string', format: 'date-time' },
-            shippingAddress: { type: 'string' }
-          }
+            shippingAddress: { type: 'string' },
+          },
         },
         User: {
           type: 'object',
@@ -103,8 +103,8 @@ const options: swaggerJsdoc.Options = {
             id: { type: 'string' },
             email: { type: 'string', format: 'email' },
             name: { type: 'string' },
-            status: { type: 'string', example: 'ACTIVE' }
-          }
+            status: { type: 'string', example: 'ACTIVE' },
+          },
         },
         ApiResponse: {
           type: 'object',
@@ -116,10 +116,10 @@ const options: swaggerJsdoc.Options = {
               type: 'object',
               properties: {
                 message: { type: 'string' },
-                statusCode: { type: 'number' }
-              }
-            }
-          }
+                statusCode: { type: 'number' },
+              },
+            },
+          },
         },
         RegisterRequest: {
           type: 'object',
@@ -127,16 +127,16 @@ const options: swaggerJsdoc.Options = {
           properties: {
             email: { type: 'string', format: 'email', example: 'user@example.com' },
             password: { type: 'string', minLength: 6, example: 'password123' },
-            name: { type: 'string', example: 'John Doe' }
-          }
+            name: { type: 'string', example: 'John Doe' },
+          },
         },
         LoginRequest: {
           type: 'object',
           required: ['email', 'password'],
           properties: {
             email: { type: 'string', format: 'email', example: 'user@example.com' },
-            password: { type: 'string', example: 'password123' }
-          }
+            password: { type: 'string', example: 'password123' },
+          },
         },
         LoginResponse: {
           type: 'object',
@@ -146,33 +146,33 @@ const options: swaggerJsdoc.Options = {
               type: 'object',
               properties: {
                 token: { type: 'string' },
-                user: { $ref: '#/components/schemas/User' }
-              }
-            }
-          }
+                user: { $ref: '#/components/schemas/User' },
+              },
+            },
+          },
         },
         ForgotPasswordRequest: {
           type: 'object',
           required: ['email'],
           properties: {
-            email: { type: 'string', format: 'email', example: 'user@example.com' }
-          }
+            email: { type: 'string', format: 'email', example: 'user@example.com' },
+          },
         },
         ResetPasswordRequest: {
           type: 'object',
           required: ['token', 'password'],
           properties: {
             token: { type: 'string' },
-            password: { type: 'string', minLength: 6, example: 'newpassword123' }
-          }
+            password: { type: 'string', minLength: 6, example: 'newpassword123' },
+          },
         },
         AddToCartRequest: {
           type: 'object',
           required: ['productId', 'quantity'],
           properties: {
             productId: { type: 'string', example: 'PROD-123' },
-            quantity: { type: 'number', minimum: 1, example: 1 }
-          }
+            quantity: { type: 'number', minimum: 1, example: 1 },
+          },
         },
         CreateOrderRequest: {
           type: 'object',
@@ -185,28 +185,28 @@ const options: swaggerJsdoc.Options = {
                 required: ['productId', 'quantity'],
                 properties: {
                   productId: { type: 'string' },
-                  quantity: { type: 'number', minimum: 1 }
-                }
-              }
+                  quantity: { type: 'number', minimum: 1 },
+                },
+              },
             },
-            shippingAddress: { type: 'string', example: '123 Main St, City, Country' }
-          }
-        }
-      }
+            shippingAddress: { type: 'string', example: '123 Main St, City, Country' },
+          },
+        },
+      },
     },
     tags: [
       { name: 'Products', description: 'Product operations' },
       { name: 'Cart', description: 'Shopping cart operations (requires authentication)' },
       { name: 'Orders', description: 'Order operations (requires authentication)' },
-      { name: 'Auth', description: 'Authentication operations' }
-    ]
+      { name: 'Auth', description: 'Authentication operations' },
+    ],
   },
   apis: [
     `${routesDir}/*.ts`,
     `${routesDir}/*.js`,
     path.join(process.cwd(), 'src/api/routes/*.ts'),
-    path.join(process.cwd(), 'dist/api/routes/*.js')
-  ]
+    path.join(process.cwd(), 'dist/api/routes/*.js'),
+  ],
 };
 
 let swaggerSpec: any;
@@ -220,4 +220,3 @@ try {
 }
 
 export { swaggerSpec };
-

@@ -1,9 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { type Document, Schema } from 'mongoose';
 
 export enum CustomerStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export interface IPasswordHistory {
@@ -26,20 +26,23 @@ export interface ICustomer extends Document {
   resetTokenExpiry?: Date;
 }
 
-const PasswordHistorySchema = new Schema<IPasswordHistory>({
-  hash: { type: String, required: true },
-  changedAt: { type: Date, required: true, default: Date.now }
-}, { _id: false });
+const PasswordHistorySchema = new Schema<IPasswordHistory>(
+  {
+    hash: { type: String, required: true },
+    changedAt: { type: Date, required: true, default: Date.now },
+  },
+  { _id: false }
+);
 
 const CustomerSchema = new Schema<ICustomer>({
   id: { type: String, required: true, unique: true, index: true },
   email: { type: String, required: true, unique: true, index: true },
   name: { type: String, required: true },
-  status: { 
-    type: String, 
-    enum: Object.values(CustomerStatus), 
+  status: {
+    type: String,
+    enum: Object.values(CustomerStatus),
     required: true,
-    default: CustomerStatus.ACTIVE
+    default: CustomerStatus.ACTIVE,
   },
   createdAt: { type: Date, default: Date.now },
   passwordHash: { type: String, required: false },
@@ -48,8 +51,7 @@ const CustomerSchema = new Schema<ICustomer>({
   verificationToken: { type: String, required: false, index: true },
   verificationTokenExpiry: { type: Date, required: false },
   resetToken: { type: String, required: false, index: true },
-  resetTokenExpiry: { type: Date, required: false }
+  resetTokenExpiry: { type: Date, required: false },
 });
 
 export const CustomerModel = mongoose.model<ICustomer>('Customer', CustomerSchema);
-

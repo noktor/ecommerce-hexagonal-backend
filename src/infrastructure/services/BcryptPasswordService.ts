@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { PasswordService } from '../../domain/services/PasswordService';
+import type { PasswordService } from '../../domain/services/PasswordService';
 
 export class BcryptPasswordService implements PasswordService {
   private readonly saltRounds: number;
@@ -16,4 +16,3 @@ export class BcryptPasswordService implements PasswordService {
     return bcrypt.compare(password, hash);
   }
 }
-

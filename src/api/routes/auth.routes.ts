@@ -1,12 +1,9 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/AuthController';
+import type { TokenService } from '../../domain/services/TokenService';
+import type { AuthController } from '../controllers/AuthController';
 import { createAuthMiddleware } from '../middleware/auth';
-import { TokenService } from '../../domain/services/TokenService';
 
-export function createAuthRouter(
-  controller: AuthController,
-  tokenService: TokenService
-): Router {
+export function createAuthRouter(controller: AuthController, tokenService: TokenService): Router {
   const router = Router();
   const authMiddleware = createAuthMiddleware(tokenService);
 
@@ -173,4 +170,3 @@ export function createAuthRouter(
 
   return router;
 }
-

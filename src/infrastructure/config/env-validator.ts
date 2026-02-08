@@ -30,8 +30,8 @@ export function validateEnvironmentVariables(): void {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
-      'Please ensure all required variables are set in your .env file or environment.\n' +
-      'See .env.example for reference.'
+        'Please ensure all required variables are set in your .env file or environment.\n' +
+        'See .env.example for reference.'
     );
   }
 
@@ -52,7 +52,7 @@ export function validateEnvironmentVariables(): void {
   // Validate SendGrid configuration (optional but recommended)
   const sendGridApiKey = process.env.SENDGRID_API_KEY;
   const sendGridFromEmail = process.env.SENDGRID_FROM_EMAIL;
-  
+
   if (!sendGridApiKey || !sendGridFromEmail) {
     console.warn('⚠️  SendGrid email service not fully configured:');
     if (!sendGridApiKey) {
@@ -69,7 +69,7 @@ export function validateEnvironmentVariables(): void {
     if (!emailRegex.test(sendGridFromEmail)) {
       console.warn(`⚠️  SENDGRID_FROM_EMAIL has invalid email format: ${sendGridFromEmail}`);
     }
-    
+
     // Validate API key format (SendGrid keys start with SG.)
     if (!sendGridApiKey.startsWith('SG.')) {
       console.warn('⚠️  SENDGRID_API_KEY format may be incorrect (should start with SG.)');
@@ -81,4 +81,3 @@ export function validateEnvironmentVariables(): void {
   console.log(`📋 Environment: ${env}`);
   console.log(`✅ All required environment variables are set`);
 }
-

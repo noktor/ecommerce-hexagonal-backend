@@ -21,4 +21,3 @@ export class Product {
     // This is just for domain logic validation
   }
 }
-

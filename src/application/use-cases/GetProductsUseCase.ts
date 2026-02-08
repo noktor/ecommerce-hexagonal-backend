@@ -1,6 +1,6 @@
-import { Product } from '../../domain/Product';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
-import { CacheService } from '../../domain/services/CacheService';
+import type { Product } from '../../domain/Product';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
+import type { CacheService } from '../../domain/services/CacheService';
 
 export interface GetProductsRequest {
   category?: string;
@@ -14,9 +14,7 @@ export class GetProductsUseCase {
   ) {}
 
   async execute(request: GetProductsRequest = {}): Promise<Product[]> {
-    const cacheKey = request.category 
-      ? `products:category:${request.category}`
-      : 'products:all';
+    const cacheKey = request.category ? `products:category:${request.category}` : 'products:all';
 
     // Try to get from cache
     if (request.useCache !== false) {
@@ -41,4 +39,3 @@ export class GetProductsUseCase {
     return products;
   }
 }
-

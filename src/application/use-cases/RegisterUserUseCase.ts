@@ -1,8 +1,8 @@
-import { Customer, CustomerStatus } from '../../domain/Customer';
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { PasswordService } from '../../domain/services/PasswordService';
-import { EmailService } from '../../domain/services/EmailService';
 import { randomUUID } from 'crypto';
+import { Customer, CustomerStatus } from '../../domain/Customer';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { EmailService } from '../../domain/services/EmailService';
+import type { PasswordService } from '../../domain/services/PasswordService';
 
 export interface RegisterUserInput {
   email: string;
@@ -63,13 +63,12 @@ export class RegisterUserUseCase {
       email: savedCustomer.email,
       name: savedCustomer.name,
       verificationToken: savedCustomer.verificationToken!,
-      verificationUrl
+      verificationUrl,
     });
 
     return {
       customer: savedCustomer,
-      message: 'Registration successful. Please check your email to verify your account.'
+      message: 'Registration successful. Please check your email to verify your account.',
     };
   }
 }
-

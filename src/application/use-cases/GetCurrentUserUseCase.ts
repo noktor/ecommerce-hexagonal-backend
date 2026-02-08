@@ -1,4 +1,4 @@
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 
 export interface GetCurrentUserInput {
   userId: string;
@@ -17,7 +17,7 @@ export class GetCurrentUserUseCase {
 
   async execute(input: GetCurrentUserInput): Promise<GetCurrentUserOutput> {
     const customer = await this.customerRepository.findById(input.userId);
-    
+
     if (!customer) {
       throw new Error('User not found');
     }
@@ -27,8 +27,7 @@ export class GetCurrentUserUseCase {
       email: customer.email,
       name: customer.name,
       emailVerified: customer.emailVerified,
-      status: customer.status
+      status: customer.status,
     };
   }
 }
-

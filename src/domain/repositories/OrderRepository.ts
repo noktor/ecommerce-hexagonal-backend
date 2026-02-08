@@ -1,4 +1,4 @@
-import { Order } from '../Order';
+import type { Order } from '../Order';
 
 export interface OrderRepository {
   save(order: Order): Promise<void>;
@@ -6,4 +6,3 @@ export interface OrderRepository {
   findByCustomerId(customerId: string): Promise<Order[]>;
   updateStatus(orderId: string, status: Order['status']): Promise<void>;
 }
-

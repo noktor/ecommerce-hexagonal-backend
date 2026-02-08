@@ -4,7 +4,7 @@ export enum OrderStatus {
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export interface OrderItem {
@@ -36,4 +36,3 @@ export class Order {
     return this.status === OrderStatus.PENDING || this.status === OrderStatus.CONFIRMED;
   }
 }
-

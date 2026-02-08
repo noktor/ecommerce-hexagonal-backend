@@ -1,5 +1,5 @@
 import { Product } from '../../domain/Product';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
 
 // Mock implementation - In production, this would use MySQL
 export class MysqlProductRepository implements ProductRepository {
@@ -13,7 +13,7 @@ export class MysqlProductRepository implements ProductRepository {
   // Simulate database latency (50-150ms typical for MySQL queries)
   private async simulateLatency(min: number = 50, max: number = 150): Promise<void> {
     const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   async findById(id: string): Promise<Product | null> {
@@ -28,7 +28,7 @@ export class MysqlProductRepository implements ProductRepository {
 
   async findByCategory(category: string): Promise<Product[]> {
     await this.simulateLatency(80, 180);
-    return Array.from(this.products.values()).filter(p => p.category === category);
+    return Array.from(this.products.values()).filter((p) => p.category === category);
   }
 
   async updateStock(productId: string, quantity: number): Promise<void> {
@@ -37,7 +37,7 @@ export class MysqlProductRepository implements ProductRepository {
     if (!product) {
       throw new Error(`Product not found: ${productId}`);
     }
-    
+
     // In a real implementation, this would be an atomic SQL update with row lock
     const updatedProduct = new Product(
       product.id,
@@ -60,9 +60,8 @@ export class MysqlProductRepository implements ProductRepository {
       new Product('5', 'Jeans', 'Blue jeans', 49.99, 75, 'Clothing', new Date()),
     ];
 
-    mockProducts.forEach(product => {
+    mockProducts.forEach((product) => {
       this.products.set(product.id, product);
     });
   }
 }
-

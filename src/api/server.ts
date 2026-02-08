@@ -1,14 +1,14 @@
-import express, { Express } from 'express';
+import express, { type Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
+import type { TokenService } from '../domain/services/TokenService';
+import { swaggerSpec } from './config/swagger';
+import { AuthController } from './controllers/AuthController';
+import { CartController } from './controllers/CartController';
+import { OrdersController } from './controllers/OrdersController';
+import { ProductsController } from './controllers/ProductsController';
 import { corsMiddleware } from './middleware/cors';
 import { errorHandler } from './middleware/errorHandler';
 import { createApiRouter } from './routes';
-import { ProductsController } from './controllers/ProductsController';
-import { CartController } from './controllers/CartController';
-import { OrdersController } from './controllers/OrdersController';
-import { AuthController } from './controllers/AuthController';
-import { TokenService } from '../domain/services/TokenService';
-import { swaggerSpec } from './config/swagger';
 
 export interface UseCases {
   getProductsUseCase: any;
@@ -50,11 +50,14 @@ export function createApp(
   // Swagger UI - API Documentation
   try {
     app.use('/api-docs', swaggerUi.serve);
-    app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-      customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'E-commerce API Documentation',
-      customfavIcon: '/favicon.ico'
-    }));
+    app.get(
+      '/api-docs',
+      swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'E-commerce API Documentation',
+        customfavIcon: '/favicon.ico',
+      })
+    );
     console.log('✅ Swagger UI configured at /api-docs');
   } catch (error) {
     console.error('❌ Error configuring Swagger UI:', error);
@@ -93,13 +96,16 @@ export function createApp(
   );
 
   // API Routes
-  app.use('/api', createApiRouter(
-    productsController,
-    cartController,
-    ordersController,
-    authController,
-    services.tokenService
-  ));
+  app.use(
+    '/api',
+    createApiRouter(
+      productsController,
+      cartController,
+      ordersController,
+      authController,
+      services.tokenService
+    )
+  );
 
   // Error handler (must be last)
   app.use(errorHandler);
@@ -114,4 +120,3 @@ export function startServer(app: Express, port: number = 3000): void {
     console.log(`📚 API Documentation available at http://localhost:${port}/api-docs`);
   });
 }
-

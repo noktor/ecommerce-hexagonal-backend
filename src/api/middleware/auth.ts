@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { TokenService } from '../../domain/services/TokenService';
+import type { NextFunction, Request, Response } from 'express';
+import type { TokenService } from '../../domain/services/TokenService';
 import { AppError } from './errorHandler';
 
 export interface AuthenticatedRequest extends Request {
@@ -60,8 +60,7 @@ export function createOptionalAuthMiddleware(tokenService: TokenService) {
       next();
     } catch (error) {
       // If token is invalid, just continue without setting userId (guest user)
-      next();
+      next(error);
     }
   };
 }
-

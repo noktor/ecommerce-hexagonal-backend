@@ -1,4 +1,4 @@
-import { Customer } from '../Customer';
+import type { Customer } from '../Customer';
 
 export interface CustomerRepository {
   findById(id: string): Promise<Customer | null>;
@@ -7,4 +7,3 @@ export interface CustomerRepository {
   findByResetToken(token: string): Promise<Customer | null>;
   save(customer: Customer): Promise<Customer>;
 }
-

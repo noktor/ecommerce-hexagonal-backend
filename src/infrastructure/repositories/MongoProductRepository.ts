@@ -1,6 +1,6 @@
 import { Product } from '../../domain/Product';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
-import { ProductModel, IProduct } from '../models/ProductModel';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
+import { type IProduct, ProductModel } from '../models/ProductModel';
 
 export class MongoProductRepository implements ProductRepository {
   private documentToProduct(doc: IProduct): Product {
@@ -22,12 +22,12 @@ export class MongoProductRepository implements ProductRepository {
 
   async findAll(): Promise<Product[]> {
     const docs = await ProductModel.find({}).exec();
-    return docs.map(doc => this.documentToProduct(doc));
+    return docs.map((doc) => this.documentToProduct(doc));
   }
 
   async findByCategory(category: string): Promise<Product[]> {
     const docs = await ProductModel.find({ category }).exec();
-    return docs.map(doc => this.documentToProduct(doc));
+    return docs.map((doc) => this.documentToProduct(doc));
   }
 
   async updateStock(productId: string, quantity: number): Promise<void> {

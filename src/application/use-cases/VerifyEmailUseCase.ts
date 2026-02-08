@@ -1,4 +1,4 @@
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 
 export interface VerifyEmailInput {
   token: string;
@@ -15,7 +15,7 @@ export class VerifyEmailUseCase {
   async execute(input: VerifyEmailInput): Promise<VerifyEmailOutput> {
     // Find customer by verification token
     const customer = await this.customerRepository.findByVerificationToken(input.token);
-    
+
     if (!customer) {
       throw new Error('Invalid or expired verification token');
     }
@@ -24,7 +24,7 @@ export class VerifyEmailUseCase {
     if (customer.isEmailVerified()) {
       return {
         success: true,
-        message: 'Email already verified'
+        message: 'Email already verified',
       };
     }
 
@@ -36,8 +36,7 @@ export class VerifyEmailUseCase {
 
     return {
       success: true,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully',
     };
   }
 }
-

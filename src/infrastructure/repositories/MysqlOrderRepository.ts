@@ -1,5 +1,5 @@
 import { Order } from '../../domain/Order';
-import { OrderRepository } from '../../domain/repositories/OrderRepository';
+import type { OrderRepository } from '../../domain/repositories/OrderRepository';
 
 // Mock implementation
 export class MysqlOrderRepository implements OrderRepository {
@@ -14,7 +14,7 @@ export class MysqlOrderRepository implements OrderRepository {
   }
 
   async findByCustomerId(customerId: string): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(o => o.customerId === customerId);
+    return Array.from(this.orders.values()).filter((o) => o.customerId === customerId);
   }
 
   async updateStatus(orderId: string, status: Order['status']): Promise<void> {
@@ -22,7 +22,7 @@ export class MysqlOrderRepository implements OrderRepository {
     if (!order) {
       throw new Error(`Order not found: ${orderId}`);
     }
-    
+
     const updatedOrder = new Order(
       order.id,
       order.customerId,
@@ -35,4 +35,3 @@ export class MysqlOrderRepository implements OrderRepository {
     this.orders.set(orderId, updatedOrder);
   }
 }
-

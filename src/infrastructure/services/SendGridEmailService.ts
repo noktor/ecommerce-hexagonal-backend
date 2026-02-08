@@ -1,5 +1,10 @@
 import sgMail from '@sendgrid/mail';
-import { EmailService, EmailVerificationData, PasswordResetData, OrderConfirmationData } from '../../domain/services/EmailService';
+import type {
+  EmailService,
+  EmailVerificationData,
+  OrderConfirmationData,
+  PasswordResetData,
+} from '../../domain/services/EmailService';
 
 export class SendGridEmailService implements EmailService {
   private readonly fromEmail: string;
@@ -9,7 +14,7 @@ export class SendGridEmailService implements EmailService {
     if (!apiKey || apiKey.trim() === '') {
       throw new Error('SendGrid API key is required');
     }
-    
+
     if (!apiKey.startsWith('SG.')) {
       console.warn('⚠️  SendGrid API key format may be incorrect (should start with SG.)');
     }
@@ -29,7 +34,9 @@ export class SendGridEmailService implements EmailService {
       this.fromEmail = fromEmail;
       console.log(`✅ SendGrid email service initialized with sender: ${fromEmail}`);
     } catch (error) {
-      throw new Error(`Failed to initialize SendGrid: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to initialize SendGrid: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -54,7 +61,7 @@ export class SendGridEmailService implements EmailService {
           <p>This link will expire in 24 hours.</p>
           <p>If you didn't create an account, please ignore this email.</p>
         </div>
-      `
+      `,
     };
 
     try {
@@ -63,35 +70,40 @@ export class SendGridEmailService implements EmailService {
       console.log(`✅ Verification email sent successfully to: ${data.email}`);
     } catch (error: any) {
       console.error('❌ Error sending verification email:', error);
-      
+
       if (error.response) {
         const statusCode = error.response.statusCode || error.code;
         const errorBody = error.response.body;
         const errorMessage = errorBody?.errors?.[0]?.message || error.message;
-        
-        console.error(`SendGrid API Error (Status: ${statusCode}):`, JSON.stringify(errorBody, null, 2));
-        
+
+        console.error(
+          `SendGrid API Error (Status: ${statusCode}):`,
+          JSON.stringify(errorBody, null, 2)
+        );
+
         // Provide helpful error messages based on status code
         if (statusCode === 403 || error.code === 403) {
           throw new Error(
             `SendGrid Forbidden Error: ${errorMessage}\n` +
-            `This usually means:\n` +
-            `1. The sender email (${this.fromEmail}) is not verified in SendGrid\n` +
-            `2. The API key doesn't have Mail Send permissions\n` +
-            `3. The API key is invalid or revoked\n` +
-            `Please check your SendGrid configuration.`
+              `This usually means:\n` +
+              `1. The sender email (${this.fromEmail}) is not verified in SendGrid\n` +
+              `2. The API key doesn't have Mail Send permissions\n` +
+              `3. The API key is invalid or revoked\n` +
+              `Please check your SendGrid configuration.`
           );
         } else if (statusCode === 401) {
           throw new Error(
             `SendGrid Unauthorized Error: ${errorMessage}\n` +
-            `The API key is invalid or doesn't have the required permissions.`
+              `The API key is invalid or doesn't have the required permissions.`
           );
         } else {
           throw new Error(`Failed to send verification email: ${errorMessage}`);
         }
       }
-      
-      throw new Error(`Failed to send verification email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      throw new Error(
+        `Failed to send verification email: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -116,7 +128,7 @@ export class SendGridEmailService implements EmailService {
           <p>This link will expire in 1 hour.</p>
           <p>If you didn't request a password reset, please ignore this email.</p>
         </div>
-      `
+      `,
     };
 
     try {
@@ -125,34 +137,39 @@ export class SendGridEmailService implements EmailService {
       console.log(`✅ Password reset email sent successfully to: ${data.email}`);
     } catch (error: any) {
       console.error('❌ Error sending password reset email:', error);
-      
+
       if (error.response) {
         const statusCode = error.response.statusCode || error.code;
         const errorBody = error.response.body;
         const errorMessage = errorBody?.errors?.[0]?.message || error.message;
-        
-        console.error(`SendGrid API Error (Status: ${statusCode}):`, JSON.stringify(errorBody, null, 2));
-        
+
+        console.error(
+          `SendGrid API Error (Status: ${statusCode}):`,
+          JSON.stringify(errorBody, null, 2)
+        );
+
         if (statusCode === 403 || error.code === 403) {
           throw new Error(
             `SendGrid Forbidden Error: ${errorMessage}\n` +
-            `This usually means:\n` +
-            `1. The sender email (${this.fromEmail}) is not verified in SendGrid\n` +
-            `2. The API key doesn't have Mail Send permissions\n` +
-            `3. The API key is invalid or revoked\n` +
-            `Please check your SendGrid configuration.`
+              `This usually means:\n` +
+              `1. The sender email (${this.fromEmail}) is not verified in SendGrid\n` +
+              `2. The API key doesn't have Mail Send permissions\n` +
+              `3. The API key is invalid or revoked\n` +
+              `Please check your SendGrid configuration.`
           );
         } else if (statusCode === 401) {
           throw new Error(
             `SendGrid Unauthorized Error: ${errorMessage}\n` +
-            `The API key is invalid or doesn't have the required permissions.`
+              `The API key is invalid or doesn't have the required permissions.`
           );
         } else {
           throw new Error(`Failed to send password reset email: ${errorMessage}`);
         }
       }
-      
-      throw new Error(`Failed to send password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      throw new Error(
+        `Failed to send password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -168,7 +185,7 @@ export class SendGridEmailService implements EmailService {
           <p>Your password has been successfully reset.</p>
           <p>If you didn't make this change, please contact us immediately.</p>
         </div>
-      `
+      `,
     };
 
     try {
@@ -246,7 +263,7 @@ export class SendGridEmailService implements EmailService {
             Thank you for shopping with us!
           </p>
         </div>
-      `
+      `,
     };
 
     try {
@@ -259,10 +276,12 @@ export class SendGridEmailService implements EmailService {
         const statusCode = error.response.statusCode || error.code;
         const errorBody = error.response.body;
         const errorMessage = errorBody?.errors?.[0]?.message || error.message;
-        console.error(`SendGrid API Error (Status: ${statusCode}):`, JSON.stringify(errorBody, null, 2));
+        console.error(
+          `SendGrid API Error (Status: ${statusCode}):`,
+          JSON.stringify(errorBody, null, 2)
+        );
       }
       // Don't throw here - email failure shouldn't break the order creation flow
     }
   }
 }
-

@@ -1,11 +1,11 @@
-import { Response, NextFunction } from 'express';
-import { AddToCartUseCase } from '../../application/use-cases/AddToCartUseCase';
-import { RemoveFromCartUseCase } from '../../application/use-cases/RemoveFromCartUseCase';
-import { CartRepository } from '../../domain/repositories/CartRepository';
-import { CacheService } from '../../domain/services/CacheService';
-import { Cart } from '../../domain/Cart';
+import type { NextFunction, Response } from 'express';
+import type { AddToCartUseCase } from '../../application/use-cases/AddToCartUseCase';
+import type { RemoveFromCartUseCase } from '../../application/use-cases/RemoveFromCartUseCase';
+import type { Cart } from '../../domain/Cart';
+import type { CartRepository } from '../../domain/repositories/CartRepository';
+import type { CacheService } from '../../domain/services/CacheService';
+import type { AuthenticatedRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
-import { AuthenticatedRequest } from '../middleware/auth';
 
 export class CartController {
   constructor(
@@ -15,7 +15,11 @@ export class CartController {
     private cacheService: CacheService
   ) {}
 
-  async getByCustomerId(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  async getByCustomerId(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       if (!req.userId) {
         throw new AppError(401, 'Authentication required');
@@ -30,9 +34,9 @@ export class CartController {
         const cart = {
           ...cachedCart,
           updatedAt: new Date(cachedCart.updatedAt),
-          expiresAt: cachedCart.expiresAt ? new Date(cachedCart.expiresAt) : undefined
+          expiresAt: cachedCart.expiresAt ? new Date(cachedCart.expiresAt) : undefined,
         };
-        
+
         // Check if cart expired
         if (cart.expiresAt && new Date() > cart.expiresAt) {
           // Cart expired, clear it
@@ -44,15 +48,15 @@ export class CartController {
               id: null,
               customerId,
               items: [],
-              updatedAt: new Date()
-            }
+              updatedAt: new Date(),
+            },
           });
           return;
         }
-        
+
         res.json({
           success: true,
-          data: cart
+          data: cart,
         });
         return;
       }
@@ -67,8 +71,8 @@ export class CartController {
             id: null,
             customerId,
             items: [],
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
         return;
       }
@@ -82,8 +86,8 @@ export class CartController {
             id: null,
             customerId,
             items: [],
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
         return;
       }
@@ -94,7 +98,7 @@ export class CartController {
 
       res.json({
         success: true,
-        data: cart
+        data: cart,
       });
     } catch (error) {
       next(error);
@@ -120,12 +124,12 @@ export class CartController {
       const cart = await this.addToCartUseCase.execute({
         customerId: req.userId,
         productId,
-        quantity
+        quantity,
       });
 
       res.status(201).json({
         success: true,
-        data: cart
+        data: cart,
       });
     } catch (error) {
       // Handle lock acquisition failures with 429 status
@@ -150,12 +154,12 @@ export class CartController {
 
       const cart = await this.removeFromCartUseCase.execute({
         customerId: req.userId,
-        productId
+        productId,
       });
 
       res.json({
         success: true,
-        data: cart
+        data: cart,
       });
     } catch (error) {
       // Handle lock acquisition failures with 429 status
@@ -166,4 +170,3 @@ export class CartController {
     }
   }
 }
-

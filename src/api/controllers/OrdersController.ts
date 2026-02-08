@@ -1,8 +1,8 @@
-import { Response, NextFunction, Request } from 'express';
-import { CreateOrderUseCase } from '../../application/use-cases/CreateOrderUseCase';
-import { OrderRepository } from '../../domain/repositories/OrderRepository';
+import { type NextFunction, Request, type Response } from 'express';
+import type { CreateOrderUseCase } from '../../application/use-cases/CreateOrderUseCase';
+import type { OrderRepository } from '../../domain/repositories/OrderRepository';
+import type { AuthenticatedRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
-import { AuthenticatedRequest } from '../middleware/auth';
 
 export class OrdersController {
   constructor(
@@ -38,12 +38,12 @@ export class OrdersController {
         items,
         shippingAddress,
         guestEmail,
-        guestName
+        guestName,
       });
 
       res.status(201).json({
         success: true,
-        data: order
+        data: order,
       });
     } catch (error) {
       next(error);
@@ -67,11 +67,10 @@ export class OrdersController {
 
       res.json({
         success: true,
-        data: order
+        data: order,
       });
     } catch (error) {
       next(error);
     }
   }
 }
-

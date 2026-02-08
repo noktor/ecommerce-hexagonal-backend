@@ -6,7 +6,7 @@ export async function connectToMongoDB(): Promise<void> {
   }
 
   const connectionString = process.env.MONGODB_URI;
-  
+
   // Note: Validation is done in env-validator.ts before this function is called
   if (!connectionString) {
     throw new Error('MONGODB_URI is not set. This should have been caught by validation.');

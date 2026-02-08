@@ -1,13 +1,13 @@
-import { Order, OrderStatus, OrderItem } from '../../domain/Order';
 import { Customer } from '../../domain/Customer';
+import type { EventPublisher } from '../../domain/events/EventPublisher';
+import { Order, type OrderItem, OrderStatus } from '../../domain/Order';
 import { Product } from '../../domain/Product';
-import { OrderRepository } from '../../domain/repositories/OrderRepository';
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { ProductRepository } from '../../domain/repositories/ProductRepository';
-import { CartRepository } from '../../domain/repositories/CartRepository';
-import { EventPublisher } from '../../domain/events/EventPublisher';
-import { CacheService } from '../../domain/services/CacheService';
-import { EmailService } from '../../domain/services/EmailService';
+import type { CartRepository } from '../../domain/repositories/CartRepository';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { OrderRepository } from '../../domain/repositories/OrderRepository';
+import type { ProductRepository } from '../../domain/repositories/ProductRepository';
+import type { CacheService } from '../../domain/services/CacheService';
+import type { EmailService } from '../../domain/services/EmailService';
 
 export interface CreateOrderRequest {
   customerId?: string | null; // Optional for guest orders
@@ -59,7 +59,9 @@ export class CreateOrderUseCase {
         throw new Error(`Product not found: ${item.productId}`);
       }
       if (!product.hasStock(item.quantity)) {
-        throw new Error(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
+        throw new Error(
+          `Insufficient stock for product ${product.name}. Available: ${product.stock}`
+        );
       }
 
       const subtotal = product.price * item.quantity;
@@ -68,7 +70,7 @@ export class CreateOrderUseCase {
         productName: product.name,
         quantity: item.quantity,
         price: product.price,
-        subtotal
+        subtotal,
       });
       total += subtotal;
     }
@@ -97,10 +99,10 @@ export class CreateOrderUseCase {
       if (product) {
         affectedCategories.add(product.category);
       }
-      
+
       // Update stock
       await this.productRepository.updateStock(item.productId, -item.quantity);
-      
+
       // Invalidate cache for this specific product
       await this.cacheService.delete(`product:${item.productId}`);
     }
@@ -130,9 +132,9 @@ export class CreateOrderUseCase {
             productName: item.productName,
             quantity: item.quantity,
             price: item.price,
-            subtotal: item.subtotal
+            subtotal: item.subtotal,
           })),
-          shippingAddress: order.shippingAddress
+          shippingAddress: order.shippingAddress,
         });
       } catch (error) {
         console.error('⚠️  Error sending order confirmation email (non-critical):', error);
@@ -148,7 +150,7 @@ export class CreateOrderUseCase {
       items: order.items,
       status: order.status,
       guestEmail: order.guestEmail,
-      guestName: order.guestName
+      guestName: order.guestName,
     });
 
     return order;
@@ -158,4 +160,3 @@ export class CreateOrderUseCase {
     return `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
-

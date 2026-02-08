@@ -13,26 +13,26 @@ async function testRedis() {
   // Get Redis URL from environment or use default for development
   // If REDIS_URL contains 'redis:' (Docker container name), use localhost instead for local testing
   let redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-  
+
   // If running outside Docker, replace container name with localhost
   if (redisUrl.includes('redis://redis:') && !process.env.DOCKER_ENV) {
     redisUrl = 'redis://localhost:6379';
     console.log('ℹ️  Running outside Docker, using localhost instead of container name\n');
   }
-  
+
   console.log(`📡 Redis URL: ${redisUrl}\n`);
 
   // Test Cache Service
   console.log('1️⃣ Testing Redis Cache Service...');
   const cacheService = new RedisCacheService(redisUrl);
-  
+
   try {
     await cacheService.connect();
     console.log('   ✅ Cache service connected\n');
 
     // Test cache operations
     console.log('   Testing cache operations...');
-    
+
     // Set a value
     await cacheService.set('test:key', { message: 'Hello Redis!', timestamp: Date.now() }, 60);
     console.log('   ✅ Set cache value');
@@ -67,14 +67,14 @@ async function testRedis() {
   // Test Lock Service
   console.log('2️⃣ Testing Redis Lock Service...');
   const lockService = new RedisLockService(redisUrl);
-  
+
   try {
     await lockService.connect();
     console.log('   ✅ Lock service connected\n');
 
     // Test lock operations
     console.log('   Testing lock operations...');
-    
+
     // Acquire a lock
     const lockAcquired = await lockService.acquireLock('test:lock', 10);
     if (lockAcquired) {
@@ -117,4 +117,3 @@ testRedis().catch((error) => {
   console.error('❌ Test failed:', error);
   process.exit(1);
 });
-

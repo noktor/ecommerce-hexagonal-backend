@@ -1,6 +1,6 @@
-import { CustomerRepository } from '../../domain/repositories/CustomerRepository';
-import { PasswordService } from '../../domain/services/PasswordService';
-import { TokenService } from '../../domain/services/TokenService';
+import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
+import type { PasswordService } from '../../domain/services/PasswordService';
+import type { TokenService } from '../../domain/services/TokenService';
 
 export interface LoginUserInput {
   email: string;
@@ -60,7 +60,7 @@ export class LoginUserUseCase {
     // Generate token
     const token = this.tokenService.generateToken({
       userId: customer.id,
-      email: customer.email
+      email: customer.email,
     });
 
     return {
@@ -69,9 +69,8 @@ export class LoginUserUseCase {
         id: customer.id,
         email: customer.email,
         name: customer.name,
-        emailVerified: customer.emailVerified
-      }
+        emailVerified: customer.emailVerified,
+      },
     };
   }
 }
-
