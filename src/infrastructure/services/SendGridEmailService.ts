@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { EmailService, EmailVerificationData, PasswordResetData } from '../../domain/services/EmailService';
+import { EmailService, EmailVerificationData, PasswordResetData, OrderConfirmationData } from '../../domain/services/EmailService';
 
 export class SendGridEmailService implements EmailService {
   private readonly fromEmail: string;
@@ -181,6 +181,87 @@ export class SendGridEmailService implements EmailService {
         console.error('SendGrid API Error:', error.response.body);
       }
       // Don't throw here - confirmation email failure shouldn't break the flow
+    }
+  }
+
+  async sendOrderConfirmationEmail(data: OrderConfirmationData): Promise<void> {
+    const itemsHtml = data.items
+      .map(
+        (item) => `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.productName}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${item.price.toFixed(2)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${item.subtotal.toFixed(2)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    const msg = {
+      to: data.email,
+      from: this.fromEmail,
+      subject: `Order Confirmation - ${data.orderId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Order Confirmation</h2>
+          <p>Hi ${data.name},</p>
+          <p>Thank you for your order! We've received your order and it's being processed.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Order ID:</strong> ${data.orderId}</p>
+            <p style="margin: 8px 0 0 0;"><strong>Total:</strong> $${data.total.toFixed(2)}</p>
+          </div>
+
+          <h3 style="margin-top: 30px;">Order Details</h3>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background-color: #2563eb; color: white;">
+                <th style="padding: 12px; text-align: left;">Product</th>
+                <th style="padding: 12px; text-align: center;">Quantity</th>
+                <th style="padding: 12px; text-align: right;">Price</th>
+                <th style="padding: 12px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid #2563eb;">Total:</td>
+                <td style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid #2563eb;">$${data.total.toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; border: 1px solid #fbbf24; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Shipping Address:</strong></p>
+            <p style="margin: 8px 0 0 0; white-space: pre-line;">${data.shippingAddress}</p>
+          </div>
+
+          <p>We'll send you another email when your order ships.</p>
+          <p>If you have any questions, please don't hesitate to contact us.</p>
+          
+          <p style="margin-top: 30px; color: #666; font-size: 14px;">
+            Thank you for shopping with us!
+          </p>
+        </div>
+      `
+    };
+
+    try {
+      console.log(`📧 Sending order confirmation email to: ${data.email}`);
+      await sgMail.send(msg);
+      console.log(`✅ Order confirmation email sent successfully to: ${data.email}`);
+    } catch (error: any) {
+      console.error('⚠️  Error sending order confirmation email (non-critical):', error);
+      if (error.response) {
+        const statusCode = error.response.statusCode || error.code;
+        const errorBody = error.response.body;
+        const errorMessage = errorBody?.errors?.[0]?.message || error.message;
+        console.error(`SendGrid API Error (Status: ${statusCode}):`, JSON.stringify(errorBody, null, 2));
+      }
+      // Don't throw here - email failure shouldn't break the order creation flow
     }
   }
 }

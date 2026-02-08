@@ -115,42 +115,6 @@ async function main() {
     console.warn('⚠️  Could not connect to Redis Lock Service, continuing with in-memory fallback');
   }
 
-  // Initialize use cases
-  const createOrderUseCase = new CreateOrderUseCase(
-    orderRepository,
-    customerRepository,
-    productRepository,
-    cartRepository,
-    eventPublisher,
-    cacheService
-  );
-
-  const addToCartUseCase = new AddToCartUseCase(
-    cartRepository,
-    customerRepository,
-    productRepository,
-    cacheService,
-    lockService,
-    eventPublisher
-  );
-
-  const removeFromCartUseCase = new RemoveFromCartUseCase(
-    cartRepository,
-    cacheService,
-    lockService,
-    eventPublisher
-  );
-
-  const getProductsUseCase = new GetProductsUseCase(
-    productRepository,
-    cacheService
-  );
-
-  const getProductByIdUseCase = new GetProductByIdUseCase(
-    productRepository,
-    cacheService
-  );
-
   // Initialize auth services
   const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
   const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
@@ -186,6 +150,51 @@ async function main() {
     console.warn('   See README.md for SendGrid setup instructions.');
   }
 
+  // Create a mock email service for fallback
+  const mockEmailService: EmailService = {
+    sendVerificationEmail: async () => { console.warn('Email service not configured'); },
+    sendPasswordResetEmail: async () => { console.warn('Email service not configured'); },
+    sendPasswordResetConfirmation: async () => { console.warn('Email service not configured'); },
+    sendOrderConfirmationEmail: async () => { console.warn('Email service not configured'); }
+  };
+
+  // Initialize use cases
+  const createOrderUseCase = new CreateOrderUseCase(
+    orderRepository,
+    customerRepository,
+    productRepository,
+    cartRepository,
+    eventPublisher,
+    cacheService,
+    emailService
+  );
+
+  const addToCartUseCase = new AddToCartUseCase(
+    cartRepository,
+    customerRepository,
+    productRepository,
+    cacheService,
+    lockService,
+    eventPublisher
+  );
+
+  const removeFromCartUseCase = new RemoveFromCartUseCase(
+    cartRepository,
+    cacheService,
+    lockService,
+    eventPublisher
+  );
+
+  const getProductsUseCase = new GetProductsUseCase(
+    productRepository,
+    cacheService
+  );
+
+  const getProductByIdUseCase = new GetProductByIdUseCase(
+    productRepository,
+    cacheService
+  );
+
   // Get frontend URL - required in production
   console.log('🔍 Checking FRONTEND_URL configuration...');
   console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
@@ -212,11 +221,7 @@ async function main() {
   const registerUserUseCase = new RegisterUserUseCase(
     customerRepository,
     passwordService,
-    emailService || {
-      sendVerificationEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetConfirmation: async () => { console.warn('Email service not configured'); }
-    },
+    emailService || mockEmailService,
     frontendUrl
   );
 
@@ -231,22 +236,14 @@ async function main() {
 
   const requestPasswordResetUseCase = new RequestPasswordResetUseCase(
     customerRepository,
-    emailService || {
-      sendVerificationEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetConfirmation: async () => { console.warn('Email service not configured'); }
-    },
+    emailService || mockEmailService,
     frontendUrl
   );
 
   const resetPasswordUseCase = new ResetPasswordUseCase(
     customerRepository,
     passwordService,
-    emailService || {
-      sendVerificationEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetEmail: async () => { console.warn('Email service not configured'); },
-      sendPasswordResetConfirmation: async () => { console.warn('Email service not configured'); }
-    }
+    emailService || mockEmailService
   );
 
   const getCurrentUserUseCase = new GetCurrentUserUseCase(customerRepository);

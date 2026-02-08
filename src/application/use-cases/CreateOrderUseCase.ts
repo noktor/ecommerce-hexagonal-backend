@@ -7,6 +7,7 @@ import { ProductRepository } from '../../domain/repositories/ProductRepository';
 import { CartRepository } from '../../domain/repositories/CartRepository';
 import { EventPublisher } from '../../domain/events/EventPublisher';
 import { CacheService } from '../../domain/services/CacheService';
+import { EmailService } from '../../domain/services/EmailService';
 
 export interface CreateOrderRequest {
   customerId?: string | null; // Optional for guest orders
@@ -23,7 +24,8 @@ export class CreateOrderUseCase {
     private productRepository: ProductRepository,
     private cartRepository: CartRepository,
     private eventPublisher: EventPublisher,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private emailService: EmailService | null
   ) {}
 
   async execute(request: CreateOrderRequest): Promise<Order> {
@@ -114,6 +116,28 @@ export class CreateOrderUseCase {
       await this.cartRepository.clear(customerId);
       const cartCacheKey = `cart:${customerId}`;
       await this.cacheService.delete(cartCacheKey);
+    }
+
+    // Send order confirmation email for guest orders
+    if (!customerId && order.guestEmail && order.guestName && this.emailService) {
+      try {
+        await this.emailService.sendOrderConfirmationEmail({
+          email: order.guestEmail,
+          name: order.guestName,
+          orderId: order.id,
+          total: order.total,
+          items: order.items.map((item) => ({
+            productName: item.productName,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.subtotal
+          })),
+          shippingAddress: order.shippingAddress
+        });
+      } catch (error) {
+        console.error('⚠️  Error sending order confirmation email (non-critical):', error);
+        // Don't throw - email failure shouldn't break order creation
+      }
     }
 
     // Publish event with retry
