@@ -56,7 +56,7 @@ src/
 
 ### Prerequisites
 
-- Node.js >= 18
+- **Node.js 22** (LTS). Run `nvm use` in the project folder if you use nvm (see `.nvmrc`).
 - (Optional) RabbitMQ - For retry system
 - (Optional) Redis - For cache
 - MongoDB Atlas account - For database

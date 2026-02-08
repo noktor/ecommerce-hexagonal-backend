@@ -51,7 +51,8 @@ function originValidator(
 ): void {
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) {
-    return callback(null, true);
+    callback(null, true);
+    return;
   }
 
   const allowedOrigins = getAllowedOrigins();

@@ -1,6 +1,7 @@
 {
   "name": "ecommerce-backend",
   "version": "1.0.0",
+  "engines": { "node": ">=22" },
   "description": "E-commerce backend with hexagonal architecture, RabbitMQ retry system and Redis cache",
   "main": "dist/index.js",
   "scripts": {
