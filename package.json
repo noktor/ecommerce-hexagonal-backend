@@ -8,6 +8,10 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "check": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "commit": "cz",
     "docker:up": "docker-compose up --build -d || docker compose up --build -d",
     "docker:down": "docker-compose down || docker compose down",
@@ -40,6 +44,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
     "@types/amqplib": "^0.10.4",
