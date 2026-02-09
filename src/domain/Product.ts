@@ -6,7 +6,10 @@ export class Product {
     public readonly price: number,
     public readonly stock: number,
     public readonly category: string,
-    public readonly createdAt: Date
+    public readonly createdAt: Date,
+    public readonly imageUrl?: string,
+    public readonly thumbnailUrl?: string,
+    public readonly longDescription?: string
   ) {}
 
   hasStock(quantity: number): boolean {

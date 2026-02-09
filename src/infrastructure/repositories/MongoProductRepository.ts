@@ -11,7 +11,10 @@ export class MongoProductRepository implements ProductRepository {
       doc.price,
       doc.stock,
       doc.category,
-      doc.createdAt
+      doc.createdAt,
+      doc.imageUrl,
+      doc.thumbnailUrl,
+      doc.longDescription
     );
   }
 
