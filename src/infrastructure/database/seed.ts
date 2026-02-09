@@ -2,6 +2,7 @@
 import 'dotenv/config';
 
 import { CustomerModel, CustomerStatus } from '../models/CustomerModel';
+import { CustomerRole } from '../../domain/Customer';
 import { ProductModel } from '../models/ProductModel';
 
 export async function seedDatabase(): Promise<void> {
@@ -75,20 +76,15 @@ export async function seedDatabase(): Promise<void> {
           name: 'John Doe',
           status: CustomerStatus.ACTIVE,
           createdAt: new Date(),
+          role: CustomerRole.USER,
         },
         {
           id: '2',
-          email: 'jane@example.com',
-          name: 'Jane Smith',
+          email: 'retailer@example.com',
+          name: 'Retailer User',
           status: CustomerStatus.ACTIVE,
           createdAt: new Date(),
-        },
-        {
-          id: '3',
-          email: 'bob@example.com',
-          name: 'Bob Johnson',
-          status: CustomerStatus.INACTIVE,
-          createdAt: new Date(),
+          role: CustomerRole.RETAILER,
         },
       ];
 

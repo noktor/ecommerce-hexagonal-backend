@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { Customer, CustomerStatus } from '../../domain/Customer';
+import { Customer, CustomerRole, CustomerStatus } from '../../domain/Customer';
 import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 import type { EmailService } from '../../domain/services/EmailService';
 import type { PasswordService } from '../../domain/services/PasswordService';
@@ -8,6 +8,8 @@ export interface RegisterUserInput {
   email: string;
   password: string;
   name: string;
+  /** Optional role; defaults to USER if not provided or invalid. */
+  role?: 'user' | 'retailer';
 }
 
 export interface RegisterUserOutput {
@@ -49,7 +51,10 @@ export class RegisterUserUseCase {
       [], // passwordHistory - empty for new users
       false, // email not verified yet
       verificationToken,
-      verificationTokenExpiry
+      verificationTokenExpiry,
+      undefined,
+      undefined,
+      input.role === 'retailer' ? CustomerRole.RETAILER : CustomerRole.USER
     );
 
     // Save customer

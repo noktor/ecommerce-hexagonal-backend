@@ -41,23 +41,44 @@ export class MysqlProductRepository implements ProductRepository {
     // In a real implementation, this would be an atomic SQL update with row lock
     const updatedProduct = new Product(
       product.id,
+      product.storeId ?? null,
       product.name,
       product.description,
       product.price,
       product.stock + quantity,
       product.category,
-      product.createdAt
+      product.createdAt,
+      product.imageUrl,
+      product.thumbnailUrl,
+      product.longDescription
     );
     this.products.set(productId, updatedProduct);
   }
 
+  async findByStoreId(storeId: string): Promise<Product[]> {
+    await this.simulateLatency(80, 180);
+    return Array.from(this.products.values()).filter((p) => p.storeId === storeId);
+  }
+
+  async create(product: Product): Promise<Product> {
+    await this.simulateLatency();
+    this.products.set(product.id, product);
+    return product;
+  }
+
+  async update(product: Product): Promise<Product> {
+    await this.simulateLatency();
+    this.products.set(product.id, product);
+    return product;
+  }
+
   private initializeMockData(): void {
     const mockProducts = [
-      new Product('1', 'Laptop', 'High-performance laptop', 999.99, 10, 'Electronics', new Date()),
-      new Product('2', 'Mouse', 'Wireless mouse', 29.99, 50, 'Electronics', new Date()),
-      new Product('3', 'Keyboard', 'Mechanical keyboard', 79.99, 30, 'Electronics', new Date()),
-      new Product('4', 'T-Shirt', 'Cotton t-shirt', 19.99, 100, 'Clothing', new Date()),
-      new Product('5', 'Jeans', 'Blue jeans', 49.99, 75, 'Clothing', new Date()),
+      new Product('1', null, 'Laptop', 'High-performance laptop', 999.99, 10, 'Electronics', new Date()),
+      new Product('2', null, 'Mouse', 'Wireless mouse', 29.99, 50, 'Electronics', new Date()),
+      new Product('3', null, 'Keyboard', 'Mechanical keyboard', 79.99, 30, 'Electronics', new Date()),
+      new Product('4', null, 'T-Shirt', 'Cotton t-shirt', 19.99, 100, 'Clothing', new Date()),
+      new Product('5', null, 'Jeans', 'Blue jeans', 49.99, 75, 'Clothing', new Date()),
     ];
 
     mockProducts.forEach((product) => {

@@ -7,6 +7,12 @@ import { CreateOrderUseCase } from './application/use-cases/CreateOrderUseCase';
 import { GetCurrentUserUseCase } from './application/use-cases/GetCurrentUserUseCase';
 import { GetProductByIdUseCase } from './application/use-cases/GetProductByIdUseCase';
 import { GetProductsUseCase } from './application/use-cases/GetProductsUseCase';
+import { CreateStoreUseCase } from './application/use-cases/CreateStoreUseCase';
+import { UpdateStoreUseCase } from './application/use-cases/UpdateStoreUseCase';
+import { ListMyStoresUseCase } from './application/use-cases/ListMyStoresUseCase';
+import { ListStoreProductsUseCase } from './application/use-cases/ListStoreProductsUseCase';
+import { CreateStoreProductUseCase } from './application/use-cases/CreateStoreProductUseCase';
+import { UpdateStoreProductUseCase } from './application/use-cases/UpdateStoreProductUseCase';
 import { LoginUserUseCase } from './application/use-cases/LoginUserUseCase';
 import { RegisterUserUseCase } from './application/use-cases/RegisterUserUseCase';
 import { RemoveFromCartUseCase } from './application/use-cases/RemoveFromCartUseCase';
@@ -24,6 +30,7 @@ import { MongoCartRepository } from './infrastructure/repositories/MongoCartRepo
 import { MongoCustomerRepository } from './infrastructure/repositories/MongoCustomerRepository';
 import { MongoOrderRepository } from './infrastructure/repositories/MongoOrderRepository';
 import { MongoProductRepository } from './infrastructure/repositories/MongoProductRepository';
+import { MongoStoreRepository } from './infrastructure/repositories/MongoStoreRepository';
 import { BcryptPasswordService } from './infrastructure/services/BcryptPasswordService';
 import { CloudinaryImageService } from './infrastructure/services/CloudinaryImageService';
 import { JWTTokenService } from './infrastructure/services/JWTTokenService';
@@ -81,6 +88,7 @@ async function main() {
   const productRepository = new MongoProductRepository();
   const customerRepository = new MongoCustomerRepository();
   const orderRepository = new MongoOrderRepository();
+  const storeRepository = new MongoStoreRepository();
   const cartRepository = new MongoCartRepository();
 
   const eventPublisher = new RabbitMQEventPublisher(process.env.RABBITMQ_URL || 'amqp://localhost');
@@ -212,6 +220,16 @@ async function main() {
 
   const getProductByIdUseCase = new GetProductByIdUseCase(productRepository, cacheService);
 
+  // Store use cases (retailer backoffice)
+  const createStoreUseCase = new CreateStoreUseCase(storeRepository);
+  const updateStoreUseCase = new UpdateStoreUseCase(storeRepository);
+  const listMyStoresUseCase = new ListMyStoresUseCase(storeRepository);
+
+  // Retailer product use cases
+  const listStoreProductsUseCase = new ListStoreProductsUseCase(productRepository, storeRepository);
+  const createStoreProductUseCase = new CreateStoreProductUseCase(productRepository, storeRepository);
+  const updateStoreProductUseCase = new UpdateStoreProductUseCase(productRepository, storeRepository);
+
   // Get frontend URL - required in production
   console.log('🔍 Checking FRONTEND_URL configuration...');
   console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
@@ -279,11 +297,18 @@ async function main() {
       requestPasswordResetUseCase,
       resetPasswordUseCase,
       getCurrentUserUseCase,
+      createStoreUseCase,
+      updateStoreUseCase,
+      listMyStoresUseCase,
+      listStoreProductsUseCase,
+      createStoreProductUseCase,
+      updateStoreProductUseCase,
     },
     {
       cartRepository,
       orderRepository,
       customerRepository,
+      storeRepository,
     },
     {
       cacheService,

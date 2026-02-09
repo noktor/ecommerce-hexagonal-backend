@@ -1,6 +1,7 @@
 import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 import type { PasswordService } from '../../domain/services/PasswordService';
 import type { TokenService } from '../../domain/services/TokenService';
+import { CustomerRole } from '../../domain/Customer';
 
 export interface LoginUserInput {
   email: string;
@@ -14,6 +15,7 @@ export interface LoginUserOutput {
     email: string;
     name: string;
     emailVerified: boolean;
+    role: 'user' | 'retailer';
   };
 }
 
@@ -61,6 +63,7 @@ export class LoginUserUseCase {
     const token = this.tokenService.generateToken({
       userId: customer.id,
       email: customer.email,
+      role: customer.role === CustomerRole.RETAILER ? 'retailer' : 'user',
     });
 
     return {
@@ -70,6 +73,7 @@ export class LoginUserUseCase {
         email: customer.email,
         name: customer.name,
         emailVerified: customer.emailVerified,
+        role: customer.role === CustomerRole.RETAILER ? 'retailer' : 'user',
       },
     };
   }

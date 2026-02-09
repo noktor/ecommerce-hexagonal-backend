@@ -20,7 +20,7 @@ export class AuthController {
 
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email, password, name } = req.body;
+      const { email, password, name, role } = req.body;
 
       if (!email || !password || !name) {
         throw new AppError(400, 'Missing required fields: email, password, name');
@@ -37,7 +37,19 @@ export class AuthController {
         throw new AppError(400, 'Password must be at least 6 characters long');
       }
 
-      const result = await this.registerUserUseCase.execute({ email, password, name });
+      // Optional role: must be 'user' or 'retailer' if provided
+      const validRole = role === undefined || role === null || role === ''
+        ? undefined
+        : role === 'retailer'
+          ? 'retailer'
+          : 'user';
+
+      const result = await this.registerUserUseCase.execute({
+        email,
+        password,
+        name,
+        role: validRole,
+      });
 
       res.status(201).json({
         success: true,

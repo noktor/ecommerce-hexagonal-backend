@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { Customer, type CustomerStatus } from '../../domain/Customer';
+import { Customer, CustomerRole, type CustomerStatus } from '../../domain/Customer';
 import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 import { CustomerModel, type ICustomer } from '../models/CustomerModel';
 
@@ -17,7 +17,8 @@ export class MongoCustomerRepository implements CustomerRepository {
       doc.verificationToken,
       doc.verificationTokenExpiry,
       doc.resetToken,
-      doc.resetTokenExpiry
+      doc.resetTokenExpiry,
+      (doc.role as CustomerRole) || CustomerRole.USER
     );
   }
 
@@ -55,6 +56,7 @@ export class MongoCustomerRepository implements CustomerRepository {
       existing.email = customer.email;
       existing.name = customer.name;
       existing.status = customer.status;
+      existing.role = customer.role;
       existing.passwordHash = customer.passwordHash;
       existing.passwordHistory = customer.passwordHistory || [];
       existing.emailVerified = customer.emailVerified;
@@ -72,6 +74,7 @@ export class MongoCustomerRepository implements CustomerRepository {
         email: customer.email,
         name: customer.name,
         status: customer.status,
+        role: customer.role,
         createdAt: customer.createdAt || new Date(),
         passwordHash: customer.passwordHash,
         passwordHistory: customer.passwordHistory || [],

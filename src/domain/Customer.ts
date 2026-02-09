@@ -4,6 +4,11 @@ export enum CustomerStatus {
   SUSPENDED = 'SUSPENDED',
 }
 
+export enum CustomerRole {
+  USER = 'USER',
+  RETAILER = 'RETAILER',
+}
+
 export interface PasswordHistory {
   hash: string;
   changedAt: Date;
@@ -22,7 +27,8 @@ export class Customer {
     public readonly verificationToken?: string,
     public readonly verificationTokenExpiry?: Date,
     public readonly resetToken?: string,
-    public readonly resetTokenExpiry?: Date
+    public readonly resetTokenExpiry?: Date,
+    public readonly role: CustomerRole = CustomerRole.USER
   ) {}
 
   canPlaceOrder(): boolean {
@@ -50,7 +56,8 @@ export class Customer {
       undefined,
       undefined,
       this.resetToken,
-      this.resetTokenExpiry
+      this.resetTokenExpiry,
+      this.role
     );
   }
 
@@ -67,7 +74,8 @@ export class Customer {
       token,
       expiry,
       this.resetToken,
-      this.resetTokenExpiry
+      this.resetTokenExpiry,
+      this.role
     );
   }
 
@@ -84,7 +92,8 @@ export class Customer {
       this.verificationToken,
       this.verificationTokenExpiry,
       token,
-      expiry
+      expiry,
+      this.role
     );
   }
 
@@ -133,7 +142,8 @@ export class Customer {
       this.verificationToken,
       this.verificationTokenExpiry,
       this.resetToken,
-      this.resetTokenExpiry
+      this.resetTokenExpiry,
+      this.role
     );
   }
 
@@ -150,7 +160,8 @@ export class Customer {
       undefined,
       undefined,
       this.resetToken,
-      this.resetTokenExpiry
+      this.resetTokenExpiry,
+      this.role
     );
   }
 
@@ -167,7 +178,8 @@ export class Customer {
       this.verificationToken,
       this.verificationTokenExpiry,
       undefined,
-      undefined
+      undefined,
+      this.role
     );
   }
 }
