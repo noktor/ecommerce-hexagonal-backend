@@ -5,6 +5,8 @@ import { swaggerSpec } from './config/swagger';
 import { AuthController } from './controllers/AuthController';
 import { CartController } from './controllers/CartController';
 import { OrdersController } from './controllers/OrdersController';
+import { StoresController } from './controllers/StoresController';
+import { RetailerProductsController } from './controllers/RetailerProductsController';
 import { ProductsController } from './controllers/ProductsController';
 import { corsMiddleware } from './middleware/cors';
 import { errorHandler } from './middleware/errorHandler';
@@ -16,6 +18,12 @@ export interface UseCases {
   addToCartUseCase: any;
   removeFromCartUseCase: any;
   createOrderUseCase: any;
+  createStoreUseCase?: any;
+  updateStoreUseCase?: any;
+  listMyStoresUseCase?: any;
+  listStoreProductsUseCase?: any;
+  createStoreProductUseCase?: any;
+  updateStoreProductUseCase?: any;
   registerUserUseCase: any;
   loginUserUseCase: any;
   verifyEmailUseCase: any;
@@ -28,6 +36,7 @@ export interface Repositories {
   cartRepository: any;
   orderRepository: any;
   customerRepository: any;
+  storeRepository?: any;
 }
 
 export interface Services {
@@ -44,7 +53,13 @@ export function createApp(
 
   // Middleware
   app.use(corsMiddleware);
-  app.use(express.json());
+  // Global JSON parser with configurable, conservative limit.
+  // Default is 1mb which is enough for most non-upload use-cases.
+  app.use(
+    express.json({
+      limit: process.env.GLOBAL_JSON_LIMIT || '1mb',
+    })
+  );
   app.use(express.urlencoded({ extended: true }));
 
   // Swagger UI - API Documentation
@@ -86,6 +101,18 @@ export function createApp(
     repositories.orderRepository
   );
 
+  const storesController = new StoresController(
+    useCases.createStoreUseCase,
+    useCases.updateStoreUseCase,
+    useCases.listMyStoresUseCase
+  );
+
+  const retailerProductsController = new RetailerProductsController(
+    useCases.listStoreProductsUseCase,
+    useCases.createStoreProductUseCase,
+    useCases.updateStoreProductUseCase
+  );
+
   const authController = new AuthController(
     useCases.registerUserUseCase,
     useCases.loginUserUseCase,
@@ -103,6 +130,8 @@ export function createApp(
       cartController,
       ordersController,
       authController,
+      storesController,
+      retailerProductsController,
       services.tokenService
     )
   );

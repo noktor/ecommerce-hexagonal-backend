@@ -1,9 +1,9 @@
-import { v2 as cloudinary } from 'cloudinary';
 import type {
   CloudinaryService,
   CloudinaryUploadOptions,
   CloudinaryUploadResult,
 } from '../../domain/services/CloudinaryService';
+import { getCloudinary } from './cloudinaryClient';
 
 export class CloudinaryImageService implements CloudinaryService {
   constructor(cloudName: string, apiKey: string, apiSecret: string) {
@@ -16,6 +16,7 @@ export class CloudinaryImageService implements CloudinaryService {
     if (!apiSecret?.trim()) {
       throw new Error('Cloudinary api_secret is required');
     }
+    const cloudinary = getCloudinary();
     cloudinary.config({
       cloud_name: cloudName,
       api_key: apiKey,
@@ -36,6 +37,7 @@ export class CloudinaryImageService implements CloudinaryService {
         ? source
         : `data:image/jpeg;base64,${(source as Buffer).toString('base64')}`;
 
+    const cloudinary = getCloudinary();
     const result = await cloudinary.uploader.upload(sourceValue, uploadOptions);
     return {
       secure_url: result.secure_url,
@@ -47,6 +49,7 @@ export class CloudinaryImageService implements CloudinaryService {
     if (!publicId?.trim()) {
       throw new Error('public_id is required to delete an asset');
     }
+    const cloudinary = getCloudinary();
     await cloudinary.uploader.destroy(publicId);
   }
 }

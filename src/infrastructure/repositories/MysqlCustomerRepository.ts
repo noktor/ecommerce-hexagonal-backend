@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { Customer, CustomerStatus } from '../../domain/Customer';
+import { Customer, CustomerRole, CustomerStatus } from '../../domain/Customer';
 import type { CustomerRepository } from '../../domain/repositories/CustomerRepository';
 
 // Mock implementation with simulated latency to emulate real database
@@ -70,7 +70,8 @@ export class MysqlCustomerRepository implements CustomerRepository {
             customer.verificationToken,
             customer.verificationTokenExpiry,
             customer.resetToken,
-            customer.resetTokenExpiry
+            customer.resetTokenExpiry,
+            customer.role ?? CustomerRole.USER
           );
       this.customers.set(newCustomer.id, newCustomer);
       return newCustomer;
@@ -86,7 +87,13 @@ export class MysqlCustomerRepository implements CustomerRepository {
         CustomerStatus.ACTIVE,
         new Date(),
         undefined,
-        []
+        [],
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CustomerRole.USER
       ),
       new Customer(
         '2',
@@ -95,7 +102,13 @@ export class MysqlCustomerRepository implements CustomerRepository {
         CustomerStatus.ACTIVE,
         new Date(),
         undefined,
-        []
+        [],
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CustomerRole.RETAILER
       ),
       new Customer(
         '3',
@@ -104,7 +117,13 @@ export class MysqlCustomerRepository implements CustomerRepository {
         CustomerStatus.INACTIVE,
         new Date(),
         undefined,
-        []
+        [],
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CustomerRole.USER
       ),
     ];
 

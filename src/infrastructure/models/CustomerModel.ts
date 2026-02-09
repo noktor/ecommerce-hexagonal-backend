@@ -1,10 +1,6 @@
 import mongoose, { type Document, Schema } from 'mongoose';
-
-export enum CustomerStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED',
-}
+import { CustomerRole, CustomerStatus } from '../../domain/Customer';
+export { CustomerStatus } from '../../domain/Customer';
 
 export interface IPasswordHistory {
   hash: string;
@@ -17,6 +13,7 @@ export interface ICustomer extends Document {
   name: string;
   status: CustomerStatus;
   createdAt: Date;
+  role: CustomerRole;
   passwordHash?: string;
   passwordHistory?: IPasswordHistory[]; // Last N password hashes
   emailVerified: boolean;
@@ -43,6 +40,12 @@ const CustomerSchema = new Schema<ICustomer>({
     enum: Object.values(CustomerStatus),
     required: true,
     default: CustomerStatus.ACTIVE,
+  },
+  role: {
+    type: String,
+    enum: Object.values(CustomerRole),
+    required: true,
+    default: CustomerRole.USER,
   },
   createdAt: { type: Date, default: Date.now },
   passwordHash: { type: String, required: false },

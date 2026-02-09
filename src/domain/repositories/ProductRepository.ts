@@ -5,4 +5,7 @@ export interface ProductRepository {
   findAll(): Promise<Product[]>;
   findByCategory(category: string): Promise<Product[]>;
   updateStock(productId: string, quantity: number): Promise<void>;
+  findByStoreId(storeId: string): Promise<Product[]>;
+  create(product: Product): Promise<Product>;
+  update(product: Product): Promise<Product>;
 }
