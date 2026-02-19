@@ -4,6 +4,8 @@ E-commerce backend API implemented with **Hexagonal Architecture** (Ports & Adap
 
 > **Note**: The frontend application is now in a [separate repository](https://github.com/your-org/ecommerce-frontend). This repository contains only the backend API.
 
+**[Live API Documentation (Swagger)](https://ecommerce-backend-qvo9.onrender.com/api-docs/)** — Interactive API reference deployed on production.
+
 ## 📋 Features
 
 - ✅ **Hexagonal Architecture** - Clear separation between domain, application and infrastructure
