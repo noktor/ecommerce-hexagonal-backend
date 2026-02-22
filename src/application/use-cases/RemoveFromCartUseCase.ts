@@ -51,22 +51,21 @@ export class RemoveFromCartUseCase {
         throw new Error('Cart not found');
       }
 
-      if (cart.isExpired()) {
-        throw new Error('Cart has expired. Please add items again.');
-      }
-
       const itemExists = cart.items.some((item) => item.productId === request.productId);
       if (!itemExists) {
         throw new Error('Item not found in cart');
       }
 
       const updatedItems = cart.removeItem(request.productId);
+      const now = new Date();
       const updatedCart = new Cart(
         cart.id,
         cart.userId,
         updatedItems,
-        new Date(),
-        cart.expiresAt
+        now,
+        cart.expiresAt,
+        cart.status,
+        now
       );
 
       await this.cartRepository.save(updatedCart);

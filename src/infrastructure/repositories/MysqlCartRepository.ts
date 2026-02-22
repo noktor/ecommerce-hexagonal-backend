@@ -1,4 +1,4 @@
-import type { Cart } from '../../domain/Cart';
+import { Cart, CartStatus } from '../../domain/Cart';
 import type { CartRepository } from '../../domain/repositories/CartRepository';
 
 // Mock implementation with simulated latency to emulate real database
@@ -25,7 +25,17 @@ export class MysqlCartRepository implements CartRepository {
     await this.simulateLatency();
     const cart = await this.findByUserId(userId);
     if (cart) {
-      this.carts.delete(cart.id);
+      const now = new Date();
+      const cleared = new Cart(
+        cart.id,
+        cart.userId,
+        [],
+        now,
+        cart.expiresAt,
+        CartStatus.EXPIRED,
+        now
+      );
+      this.carts.set(cleared.id, cleared);
     }
   }
 }

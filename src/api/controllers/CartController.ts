@@ -1,7 +1,7 @@
 import type { NextFunction, Response } from 'express';
 import type { AddToCartUseCase } from '../../application/use-cases/AddToCartUseCase';
 import type { RemoveFromCartUseCase } from '../../application/use-cases/RemoveFromCartUseCase';
-import type { Cart } from '../../domain/Cart';
+import { Cart, CartStatus } from '../../domain/Cart';
 import type { CartRepository } from '../../domain/repositories/CartRepository';
 import type { CacheService } from '../../domain/services/CacheService';
 import type { AuthenticatedRequest } from '../middleware/auth';
@@ -15,6 +15,39 @@ export class CartController {
     private cacheService: CacheService
   ) {}
 
+  private buildCartResponse(cart: Cart | null, userId: string): {
+    id: string | null;
+    userId: string;
+    items: Cart['items'];
+    updatedAt: Date;
+    status: CartStatus;
+    lastActivityAt: Date;
+  } {
+    const now = new Date();
+
+    if (!cart) {
+      return {
+        id: null,
+        userId,
+        items: [],
+        updatedAt: now,
+        status: CartStatus.ACTIVE,
+        lastActivityAt: now,
+      };
+    }
+
+    const effectiveStatus = cart.deriveStatus(now);
+
+    return {
+      id: cart.id,
+      userId: cart.userId,
+      items: cart.items,
+      updatedAt: cart.updatedAt,
+      status: effectiveStatus,
+      lastActivityAt: cart.lastActivityAt,
+    };
+  }
+
   async getByUserId(
     req: AuthenticatedRequest,
     res: Response,
@@ -27,72 +60,39 @@ export class CartController {
       const userId = req.userId;
       const cacheKey = `cart:${userId}`;
 
-      const cachedCart = await this.cacheService.get<Cart>(cacheKey);
+      const cachedCart = await this.cacheService.get<Cart & { status?: CartStatus; lastActivityAt?: Date }>(
+        cacheKey
+      );
       if (cachedCart) {
-        const cart = {
-          ...cachedCart,
-          updatedAt: new Date(cachedCart.updatedAt),
-          expiresAt: cachedCart.expiresAt ? new Date(cachedCart.expiresAt) : undefined,
-        };
+        const hydrated = new Cart(
+          cachedCart.id,
+          cachedCart.userId,
+          cachedCart.items,
+          new Date(cachedCart.updatedAt),
+          undefined,
+          (cachedCart.status as CartStatus) ?? CartStatus.ACTIVE,
+          cachedCart.lastActivityAt ? new Date(cachedCart.lastActivityAt) : new Date(cachedCart.updatedAt)
+        );
 
-        if (cart.expiresAt && new Date() > cart.expiresAt) {
-          await this.cartRepository.clear(userId);
-          await this.cacheService.delete(cacheKey);
-          res.json({
-            success: true,
-            data: {
-              id: null,
-              userId,
-              items: [],
-              updatedAt: new Date(),
-            },
-          });
-          return;
-        }
-
+        const data = this.buildCartResponse(hydrated, userId);
         res.json({
           success: true,
-          data: cart,
+          data,
         });
         return;
       }
 
       const cart = await this.cartRepository.findByUserId(userId);
 
-      if (!cart) {
-        res.json({
-          success: true,
-          data: {
-            id: null,
-            userId,
-            items: [],
-            updatedAt: new Date(),
-          },
-        });
-        return;
+      if (cart) {
+        const cacheTTL = cart.getExpiresInSeconds();
+        await this.cacheService.set(cacheKey, cart, cacheTTL);
       }
 
-      if (cart.isExpired()) {
-        await this.cartRepository.clear(userId);
-        res.json({
-          success: true,
-          data: {
-            id: null,
-            userId,
-            items: [],
-            updatedAt: new Date(),
-          },
-        });
-        return;
-      }
-
-      // Cache the cart with TTL matching expiration
-      const cacheTTL = cart.getExpiresInSeconds();
-      await this.cacheService.set(cacheKey, cart, cacheTTL);
-
+      const data = this.buildCartResponse(cart, userId);
       res.json({
         success: true,
-        data: cart,
+        data,
       });
     } catch (error) {
       next(error);

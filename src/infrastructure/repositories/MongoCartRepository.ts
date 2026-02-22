@@ -1,10 +1,20 @@
-import { Cart, type CartItem } from '../../domain/Cart';
+import { Cart, CartStatus, type CartItem } from '../../domain/Cart';
 import type { CartRepository } from '../../domain/repositories/CartRepository';
 import { CartModel, type ICart } from '../models/CartModel';
 
 export class MongoCartRepository implements CartRepository {
   private documentToCart(doc: ICart): Cart {
-    return new Cart(doc.id, doc.userId, doc.items as CartItem[], doc.updatedAt, doc.expiresAt);
+    const lastActivityAt = doc.lastActivityAt ?? doc.updatedAt ?? new Date();
+    const status = (doc.status as CartStatus) ?? CartStatus.ACTIVE;
+    return new Cart(
+      doc.id,
+      doc.userId,
+      doc.items as CartItem[],
+      doc.updatedAt,
+      doc.expiresAt,
+      status,
+      lastActivityAt
+    );
   }
 
   async findByUserId(userId: string): Promise<Cart | null> {
@@ -21,12 +31,25 @@ export class MongoCartRepository implements CartRepository {
         items: cart.items,
         updatedAt: cart.updatedAt,
         expiresAt: cart.expiresAt,
+        status: cart.status,
+        lastActivityAt: cart.lastActivityAt,
       },
       { upsert: true, new: true }
     ).exec();
   }
 
   async clear(userId: string): Promise<void> {
-    await CartModel.deleteOne({ userId }).exec();
+    const now = new Date();
+    await CartModel.updateOne(
+      { userId },
+      {
+        $set: {
+          items: [],
+          status: CartStatus.EXPIRED,
+          lastActivityAt: now,
+          updatedAt: now,
+        },
+      }
+    ).exec();
   }
 }

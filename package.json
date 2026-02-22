@@ -22,6 +22,7 @@
     "docker:check": "powershell -ExecutionPolicy Bypass -File .\\check-docker.ps1",
     "db:seed": "ts-node src/infrastructure/database/seed.ts",
     "migrate:customers-to-users": "ts-node src/infrastructure/database/migrate-customers-to-users.ts",
+    "migrate:carts-status": "ts-node src/infrastructure/database/migrate-carts-add-status.ts",
     "test:redis": "ts-node scripts/test-redis.ts",
     "env:setup": "if (!(Test-Path .env)) { Copy-Item .env.example .env; Write-Host 'Created .env from .env.example - Please update with your credentials' } else { Write-Host '.env already exists' }",
     "prepare": "husky"

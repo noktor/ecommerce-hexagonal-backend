@@ -1,4 +1,4 @@
-import { Cart } from '../../domain/Cart';
+import { Cart, CartStatus } from '../../domain/Cart';
 import type { EventPublisher } from '../../domain/events/EventPublisher';
 import type { CartRepository } from '../../domain/repositories/CartRepository';
 import type { UserRepository } from '../../domain/repositories/UserRepository';
@@ -64,36 +64,35 @@ export class AddToCartUseCase {
         throw new Error(`Insufficient stock. Available: ${product.stock}`);
       }
 
+      const now = new Date();
       let cart = await this.cartRepository.findByUserId(request.userId);
 
-      if (cart && cart.isExpired()) {
-        await this.cartRepository.clear(request.userId);
-        await this.cacheService.delete(`cart:${request.userId}`);
-        cart = null;
+      // If cart is explicitly expired, treat this as a fresh cart for the user.
+      if (cart && cart.status === CartStatus.EXPIRED) {
+        cart = new Cart(this.generateCartId(), request.userId, [], now, undefined, CartStatus.ACTIVE, now);
       }
 
       if (!cart) {
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + this.CART_EXPIRY_MINUTES);
-        cart = new Cart(this.generateCartId(), request.userId, [], new Date(), expiresAt);
+        cart = new Cart(this.generateCartId(), request.userId, [], now, undefined, CartStatus.ACTIVE, now);
       }
 
       cart.addItem(request.productId, request.quantity);
-      await this.cartRepository.save(cart);
+      const updatedCart = cart.touch(now);
+      await this.cartRepository.save(updatedCart);
 
-      const cacheTTL = cart.getExpiresInSeconds();
-      await this.cacheService.set(`cart:${request.userId}`, cart, cacheTTL);
+      const cacheTTL = updatedCart.getExpiresInSeconds();
+      await this.cacheService.set(`cart:${request.userId}`, updatedCart, cacheTTL);
 
       await this.eventPublisher.publish('cart.updated', {
-        cartId: cart.id,
-        userId: cart.userId,
+        cartId: updatedCart.id,
+        userId: updatedCart.userId,
         productId: request.productId,
         quantity: request.quantity,
         action: 'add',
-        expiresAt: cart.expiresAt?.toISOString(),
+        expiresAt: updatedCart.expiresAt?.toISOString(),
       });
 
-      return cart;
+      return updatedCart;
     } finally {
       await this.lockService.releaseLock(lockKey);
     }
